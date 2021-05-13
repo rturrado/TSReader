@@ -159,6 +159,9 @@
     <ClInclude Include="inc\PacketBuffer.h" />
     <ClInclude Include="inc\FileReader.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

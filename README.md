@@ -1,16 +1,16 @@
 # TSReader
 MPEG Transport Stream reader.
 
-I've attended recently C++Now 2021, which has been held online for the last two years.
+I've attended recently C\+\+Now 2021, which has been held online for the last two years.
 Some of the sponsors of this event used a channel in the Discord server to post different job offers and one of them, Unified Streaming, suggested to write the program below before applying for a position.
-Although I'm not looking for a job at the moment, I thought it would be a good way of doing some programming using modern C++.
+Although I'm not looking for a job at the moment, I thought it would be a good way of doing some programming using modern C\+\+.
 
 ## Description
 
 Could you write a program that takes a [TS file](http://en.wikipedia.org/wiki/MPEG_transport_stream) and writes the audio and video as two separate files to disk (raw AAC and raw AVC1)?
 
 The code should use:
-- standard C++17.
+- standard C\+\+17.
 - using only .hpp/.cpp and a Makefile.
 - no platform specifics (like MFC/COM/ATL).
 - the raw streams should be viewable/playable with for instance FFplay, as verification/test.
@@ -38,11 +38,12 @@ The code should use:
 
 ## TODO
 
+- [ ] Parse adaptation field, adaptation extension, and payload data.
 - [ ] Distinguish audio and video packets.
 - [ ] Get audio or video information from the packet.
-- [ ] Write audio and video to output files.
-It would be good to do this in a generic way, e.g., as a stage where different actions could be performed on the parsed TS packet.
-`Read > Parse > (Write audio packet to audio file or video packet to video file _and/or_ Do some statistics... )`
+- [ ] Write audio and video to output files.<br/>
+    It would be good to do this in a generic way, e.g., as a stage where different actions could be performed on the parsed TS packet.<br/>
+    `Read > Parse > (Write audio packet to audio file or video packet to video file _and/or_ Do some statistics... )`
 
 ## Usage
 
