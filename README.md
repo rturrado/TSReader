@@ -41,8 +41,8 @@ The code should use:
 - [ ] Distinguish audio and video packets.
 - [ ] Get audio or video information from the packet.
 - [ ] Write audio and video to output files.
-    It would be good to do this in a generic way, e.g., as a stage where different actions could be performed on the parsed TS packet.
-    Read > Parse > (Write audio packet to audio file or video packet to video file _and/or_ Do some statistics... )
+It would be good to do this in a generic way, e.g., as a stage where different actions could be performed on the parsed TS packet.
+`Read > Parse > (Write audio packet to audio file or video packet to video file _and/or_ Do some statistics... )`
 
 ## Usage
 
