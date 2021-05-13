@@ -10,13 +10,13 @@ Although I'm not looking for a job at the moment, I thought it would be a good w
 Could you write a program that takes a [TS file](http://en.wikipedia.org/wiki/MPEG_transport_stream) and writes the audio and video as two separate files to disk (raw AAC and raw AVC1)?
 
 The code should use:
-	- standard C++17.
-	- using only .hpp/.cpp and a Makefile.
-	- no platform specifics (like MFC/COM/ATL).
-	- the raw streams should be viewable/playable with for instance FFplay, as verification/test.
-	- example input: http://test.unified-streaming.com/elephants.ts
-	- We also would like to mention to not use ffmpeg/avconv or something other from say Github: we would like to see your work.
-	- We would like to suggest to do this as a Github project and write up your design/docs in the README.md Github provides.
+- standard C++17.
+- using only .hpp/.cpp and a Makefile.
+- no platform specifics (like MFC/COM/ATL).
+- the raw streams should be viewable/playable with for instance FFplay, as verification/test.
+- example input: http://test.unified-streaming.com/elephants.ts
+- We also would like to mention to not use ffmpeg/avconv or something other from say Github: we would like to see your work.
+- We would like to suggest to do this as a Github project and write up your design/docs in the README.md Github provides.
 
 ## Design
 
