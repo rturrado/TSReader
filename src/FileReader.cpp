@@ -12,7 +12,6 @@ namespace TS
     void FileReader::start()
     {
         std::ifstream ifs(_file_path, std::fstream::binary);
-
         if (!ifs)
         {
             throw CouldNotOpenTSFile(_file_path);
@@ -22,15 +21,16 @@ namespace TS
         for (PacketBuffer buffer{}; ifs >> buffer; )
         {
             parser.parse(buffer);
+
+            if (_stats)
+            {
+                _stats->collect(parser.get_packet());
+            }
         }
 
-        for (auto it = begin(PacketParser::pids);
-            it != end(PacketParser::pids);
-            it = PacketParser::pids.upper_bound(*it))
+        if (_stats)
         {
-            std::cout << "PID: 0x" << std::hex << *it
-                << std::dec << "\tcount = " << PacketParser::pids.count(*it)
-                << "\n";
+            std::cout << *_stats << "\n";
         }
     }
 

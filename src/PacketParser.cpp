@@ -7,73 +7,57 @@
 
 namespace TS
 {
-    /* static */
-    std::multiset<uint16_t> PacketParser::pids{};
+    template <typename ReturnType>
+    ReturnType read_field(const boost::dynamic_bitset<uint8_t>& bs, const boost::dynamic_bitset<uint8_t>& mask_bs)
+    {
+        auto tmp{ bs & mask_bs };
+        tmp >>= mask_bs.find_first();
+        return static_cast<ReturnType>(tmp.to_ulong());
+    }
+
+
 
     void PacketParser::parse_header(PacketBuffer& buffer)
     {
-        bool big_endian{ true };
-        auto header = buffer.read(header_size, big_endian);
+        Header& hdr = _packet.header;
 
-        auto tmp{ header };
-        tmp &= sync_byte_mask;
-        tmp >>= sync_byte_mask.find_first();
-        _packet.header.sync_byte = static_cast<uint8_t>(tmp.to_ulong());
+        // Read from buffer into bitset
+        auto header_buffer = buffer.read<true>(header_size);
+        boost::dynamic_bitset<uint8_t> header_bs{ header_size * 8 };
+        from_block_range(cbegin(header_buffer), cbegin(header_buffer) + header_size, header_bs);
 
-        if (_packet.header.sync_byte != sync_byte_valid_value)
+        // Read header fields
+        hdr.sync_byte = read_field<uint8_t>(header_bs, sync_byte_mask_bs);
+        if (hdr.sync_byte != sync_byte_valid_value)
         {
-            throw InvalidSyncByte(_packet.header.sync_byte);
+            throw InvalidSyncByte(hdr.sync_byte);
         }
-
-        tmp = header;
-        tmp &= transport_error_indicator_mask;
-        tmp >>= transport_error_indicator_mask.find_first();
-        _packet.header.transport_error_indicator = tmp.any();
-
-        tmp = header;
-        tmp &= payload_unit_start_indicator_mask;
-        tmp >>= payload_unit_start_indicator_mask.find_first();
-        _packet.header.payload_unit_start_indicator = tmp.any();
-
-        tmp = header;
-        tmp &= transport_priority_mask;
-        tmp >>= transport_priority_mask.find_first();
-        _packet.header.transport_priority = tmp.any();
-
-        tmp = header;
-        tmp &= PID_mask;
-        tmp >>= PID_mask.find_first();
-        _packet.header.PID = static_cast<uint16_t>(tmp.to_ulong());
-
-        tmp = header;
-        tmp &= transport_scrambling_control_mask;
-        tmp >>= transport_scrambling_control_mask.find_first();
-        _packet.header.transport_scrambling_control = static_cast<uint8_t>(tmp.to_ulong());
-
-        tmp = header;
-        tmp &= adaptation_field_control_mask;
-        tmp >>= adaptation_field_control_mask.find_first();
-        _packet.header.adaptation_field_control = static_cast<uint8_t>(tmp.to_ulong());
-
-        tmp = header;
-        tmp &= continuity_counter_mask;
-        tmp >>= continuity_counter_mask.find_first();
-        _packet.header.continuity_counter = static_cast<uint8_t>(tmp.to_ulong());
+        hdr.transport_error_indicator = header_bs.test(transport_error_indicator_mask_bs.find_first());
+        hdr.payload_unit_start_indicator = header_bs.test(payload_unit_start_indicator_mask_bs.find_first());
+        hdr.transport_priority = header_bs.test(transport_priority_mask_bs.find_first());
+        hdr.PID = read_field<uint16_t>(header_bs, PID_mask_bs);
+        hdr.transport_scrambling_control = read_field<uint8_t>(header_bs, transport_scrambling_control_mask_bs);
+        hdr.adaptation_field_control = read_field<uint8_t>(header_bs, adaptation_field_control_mask_bs);
+        hdr.continuity_counter = read_field<uint8_t>(header_bs, continuity_counter_mask_bs);
     }
+
+
 
     void PacketParser::parse_adaptation_field(PacketBuffer& buffer)
     {
     }
 
+
+
     void PacketParser::parse_payload_data(PacketBuffer& buffer)
     {
     }
 
+
+
     void PacketParser::parse(PacketBuffer& buffer)
     {
         parse_header(buffer);
-
-        pids.insert(_packet.header.PID);
 
         if (_packet.header.adaptation_field_present())
         {

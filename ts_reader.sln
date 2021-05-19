@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.31205.134
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ts_reader", "ts_reader.vcxproj", "{11F8729C-ABAA-4DAD-9998-416D2831683D}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ts_reader_test", "ts_reader_test\ts_reader_test.vcxproj", "{BA889F71-5E3E-4CF6-BBCE-B9D6453BE1C8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{11F8729C-ABAA-4DAD-9998-416D2831683D}.Release|x64.Build.0 = Release|x64
 		{11F8729C-ABAA-4DAD-9998-416D2831683D}.Release|x86.ActiveCfg = Release|Win32
 		{11F8729C-ABAA-4DAD-9998-416D2831683D}.Release|x86.Build.0 = Release|Win32
+		{BA889F71-5E3E-4CF6-BBCE-B9D6453BE1C8}.Debug|x64.ActiveCfg = Debug|x64
+		{BA889F71-5E3E-4CF6-BBCE-B9D6453BE1C8}.Debug|x64.Build.0 = Debug|x64
+		{BA889F71-5E3E-4CF6-BBCE-B9D6453BE1C8}.Debug|x86.ActiveCfg = Debug|Win32
+		{BA889F71-5E3E-4CF6-BBCE-B9D6453BE1C8}.Debug|x86.Build.0 = Debug|Win32
+		{BA889F71-5E3E-4CF6-BBCE-B9D6453BE1C8}.Release|x64.ActiveCfg = Release|x64
+		{BA889F71-5E3E-4CF6-BBCE-B9D6453BE1C8}.Release|x64.Build.0 = Release|x64
+		{BA889F71-5E3E-4CF6-BBCE-B9D6453BE1C8}.Release|x86.ActiveCfg = Release|Win32
+		{BA889F71-5E3E-4CF6-BBCE-B9D6453BE1C8}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

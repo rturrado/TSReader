@@ -8,35 +8,59 @@
 
 namespace TS
 {
+    // TS file
+
+    class TSFilePathNotFound : public std::exception
+    {
+    public:
+        explicit TSFilePathNotFound(const std::filesystem::path& fp) { _message += fp.string(); }
+        virtual const char* what() const override { return _message.c_str(); }
+    private:
+        std::string _message{ "couldn't find TS file path: " };
+    };
+
     class CouldNotOpenTSFile : public std::exception
     {
     public:
-        explicit CouldNotOpenTSFile(std::filesystem::path fp) { _message += fp.string(); _message += "\n"; }
+        explicit CouldNotOpenTSFile(const std::filesystem::path& fp) { _message += fp.string(); }
         virtual const char* what() const override { return _message.c_str(); }
     private:
-        std::string _message{ "Error: couldn't open TS file: " };
+        std::string _message{ "couldn't open TS file: " };
     };
 
 
 
-    class InvalidNumberOfArguments : public std::exception
+    // Command line parser
+
+    struct CommandLineParserException : public std::exception
     {
-    public:
-        InvalidNumberOfArguments() : std::exception{ "Error: invalid number of arguments\n" } {}
+        CommandLineParserException(const char* message) : std::exception{ message } {}
+    };
+    struct InvalidNumberOfArguments : public CommandLineParserException
+    {
+        InvalidNumberOfArguments() : CommandLineParserException{ "invalid number of arguments" } {}
+    };
+    struct UnrecognizedOption : public CommandLineParserException
+    {
+        UnrecognizedOption(const char* message) : CommandLineParserException{ message } {}
     };
 
 
+
+    // Packet parser
 
     class InvalidSyncByte : public std::exception
     {
     public:
-        InvalidSyncByte(uint8_t sync_byte) { _message += sync_byte; _message += "\n"; }
+        InvalidSyncByte(uint8_t sync_byte) { _message += sync_byte; }
         virtual const char* what() const override { return _message.c_str(); }
     private:
-        std::string _message{ "Error: invalid sync byte: " };
+        std::string _message{ "invalid sync byte: " };
     };
 
 
+
+    // Packet buffer
 
     class PacketBufferOverrun : public std::exception
     {
@@ -44,25 +68,13 @@ namespace TS
         PacketBufferOverrun(uint8_t bytes_requested_to_read, uint8_t bytes_left_to_read)
         {
             std::ostringstream oss;
-            oss << "Error:" 
-                << " trying to read " << bytes_requested_to_read << " bytes from buffer,"
-                << " but there are only " << bytes_left_to_read << " bytes left to read\n";
+            oss << "trying to read " << bytes_requested_to_read << " bytes from buffer, "
+                << "but there are only " << bytes_left_to_read << " bytes left to read";
             _message = oss.str();
         }
         virtual const char* what() const override { return _message.c_str(); }
     private:
         std::string _message{};
-    };
-
-
-
-    class TSFilePathNotFound : public std::exception
-    {
-    public:
-        explicit TSFilePathNotFound(const char* fp) { _message += fp; _message += "\n"; }
-        virtual const char* what() const override { return _message.c_str(); }
-    private:
-        std::string _message{ "Error: couldn't find TS file path: " };
     };
 }
 

@@ -4,16 +4,13 @@
 #include "Packet.h"
 #include "PacketBuffer.h"
 
-#include <set>
-
 namespace TS
 {
     class PacketParser
     {
     public:
-        static std::multiset<uint16_t> pids;
-
         void parse(PacketBuffer& buffer);
+        Packet& get_packet() { return _packet; }
     private:
         void parse_header(PacketBuffer& buffer);
         void parse_adaptation_field(PacketBuffer& buffer);
