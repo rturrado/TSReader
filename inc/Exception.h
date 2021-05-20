@@ -1,6 +1,8 @@
 #ifndef __TS_EXCEPTION_H__
 #define __TS_EXCEPTION_H__
 
+#include "Packet.h"
+
 #include <exception>
 #include <filesystem>
 #include <string>
@@ -52,10 +54,22 @@ namespace TS
     class InvalidSyncByte : public std::exception
     {
     public:
-        InvalidSyncByte(uint8_t sync_byte) { _message += sync_byte; }
+        InvalidSyncByte(const Packet& packet, size_t index)
+        {
+            _message += std::to_string(packet.header.sync_byte) + " in packet " + std::to_string(index);
+        }
         virtual const char* what() const override { return _message.c_str(); }
     private:
-        std::string _message{ "invalid sync byte: " };
+        std::string _message{ "invalid sync byte" };
+    };
+
+    class InvalidStuffingBytes : public std::exception
+    {
+    public:
+        InvalidStuffingBytes(const Packet& packet, size_t index) { _message += " in packet " + std::to_string(index); }
+        virtual const char* what() const override { return _message.c_str(); }
+    private:
+        std::string _message{ "invalid stuffing bytes" };
     };
 
 

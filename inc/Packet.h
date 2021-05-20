@@ -9,10 +9,19 @@
 
 namespace TS
 {
-    // Constants
+    // Sizes (in bytes)
     constexpr uint8_t packet_size{ 188 };
     constexpr uint8_t header_size{ 4 };
+    constexpr uint8_t adaptation_field_length_size{ 1 };
+    constexpr uint8_t adaptation_field_flags_size{ 1 };
+    constexpr uint8_t PCR_size{ 6 };
+    constexpr uint8_t OPCR_size{ 6 };
+    constexpr uint8_t splicing_countdown_size{ 1 };
+    constexpr uint8_t transport_private_data_length_size{ 1 };
+
+    // Constants
     constexpr uint8_t sync_byte_valid_value{ 'G' };
+    constexpr uint8_t stuffing_byte{ 0xff };
 
     // Header masks
     const boost::dynamic_bitset<uint8_t> sync_byte_mask_bs{ 32, 0xff'00'00'00 };
@@ -63,9 +72,8 @@ namespace TS
         std::optional<uint64_t> DTS_next_access_unit;
     };
 
-    struct AdaptationField
+    struct AdaptationFieldFlags
     {
-        uint8_t length;
         bool discontinuity_indicator{ false };
         bool random_access_indicator{ false };
         bool elementary_stream_priority_indicator{ false };
@@ -74,13 +82,23 @@ namespace TS
         bool splicing_point_flag{ false };
         bool transport_private_data_flag{ false };
         bool extension_flag{ false };
-        std::optional<std::bitset<48>> program_clock_reference{};
-        std::optional<std::bitset<48>> original_program_clock_reference{};
-        std::optional<uint8_t> splice_countdown{};
+    };
+    struct AdaptationFieldOptional
+    {
+        std::optional<boost::dynamic_bitset<uint8_t>> PCR{};
+        std::optional<boost::dynamic_bitset<uint8_t>> OPCR{};
+        std::optional<int8_t> splice_countdown{};  // two's complement signed
         std::optional<uint8_t> transport_private_data_length{};
-        std::optional<std::vector<char>> transport_private_data{};
+        std::optional<std::vector<uint8_t>> transport_private_data{};
         std::optional<AdaptationExtension> extension{};
-        std::optional<std::vector<char>> stuffing_bytes{};
+        std::optional<std::vector<uint8_t>> stuffing_bytes{};
+    };
+
+    struct AdaptationField
+    {
+        uint8_t length{ 0 };
+        std::optional<AdaptationFieldFlags> flags{};
+        std::optional<AdaptationFieldOptional> optional{};
     };
 
     struct PayloadData
