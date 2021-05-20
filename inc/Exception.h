@@ -82,8 +82,8 @@ namespace TS
         PacketBufferOverrun(uint8_t bytes_requested_to_read, uint8_t bytes_left_to_read)
         {
             std::ostringstream oss;
-            oss << "trying to read " << bytes_requested_to_read << " bytes from buffer, "
-                << "but there are only " << bytes_left_to_read << " bytes left to read";
+            oss << "trying to read " << static_cast<int16_t>(bytes_requested_to_read) << " bytes from buffer, "
+                << "but there are only " << static_cast<int16_t>(bytes_left_to_read) << " bytes left to read";
             _message = oss.str();
         }
         virtual const char* what() const override { return _message.c_str(); }
