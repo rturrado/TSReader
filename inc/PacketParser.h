@@ -19,7 +19,7 @@ namespace TS
         void parse_adaptation_field(PacketBuffer& buffer);
         void parse_adaptation_field_flags(PacketBuffer& buffer);
         void parse_adaptation_field_optional(PacketBuffer& buffer);
-        void parse_adaptation_extension(std::vector<uint8_t> af_buffer, auto cbegin_it, auto cend_it);
+        void parse_adaptation_extension(std::vector<uint8_t>& af_buffer);
         void parse_payload_data(PacketBuffer& buffer);
 
         Packet _packet{};

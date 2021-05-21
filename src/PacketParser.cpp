@@ -18,12 +18,32 @@ namespace TS
 
 
 
-    void PacketParser::parse_header(PacketBuffer& buffer)
+    void PacketParser::parse(PacketBuffer& p_buffer)
+    {
+        _index = 0;
+
+        parse_header(p_buffer);
+
+        if (_packet.header.adaptation_field_present())
+        {
+            parse_adaptation_field(p_buffer);
+        }
+        if (_packet.header.payload_data_present())
+        {
+            parse_payload_data(p_buffer);
+        }
+
+        _index++;
+    }
+
+
+
+    void PacketParser::parse_header(PacketBuffer& p_buffer)
     {
         Header& hdr = _packet.header;
 
         // Read from buffer
-        auto header_buffer = buffer.read<true>(header_size);
+        auto header_buffer = p_buffer.read<true>(header_size);
         // Create bitset from buffer
         boost::dynamic_bitset<uint8_t> header_bs{ header_size * 8 };
         from_block_range(cbegin(header_buffer), cend(header_buffer), header_bs);
@@ -45,7 +65,29 @@ namespace TS
 
 
 
-    void PacketParser::parse_adaptation_field_flags(PacketBuffer& buffer)
+    void PacketParser::parse_adaptation_field(PacketBuffer& p_buffer)
+    {
+        _packet.adaptation_field = AdaptationField{};
+
+        // Read from buffer
+        auto af_buffer = p_buffer.read(adaptation_field_length_size);
+
+        // Set fields
+        _packet.adaptation_field->length = af_buffer[0];
+
+        if (_packet.adaptation_field->length > 0)
+        {
+            parse_adaptation_field_flags(p_buffer);
+        }
+        if (_packet.adaptation_field->length > adaptation_field_flags_size)
+        {
+            parse_adaptation_field_optional(p_buffer);
+        }
+    }
+
+
+
+    void PacketParser::parse_adaptation_field_flags(PacketBuffer& p_buffer)
     {
         _packet.adaptation_field->flags = AdaptationFieldFlags{};
 
@@ -53,7 +95,7 @@ namespace TS
         AdaptationFieldFlags& aff = *af.flags;
 
         // Read from buffer
-        auto af_buffer = buffer.read(adaptation_field_flags_size);
+        auto af_buffer = p_buffer.read(adaptation_field_flags_size);
         // Create bitset from buffer
         boost::dynamic_bitset<uint8_t> af_bs{ 8, af_buffer[0] };
 
@@ -70,7 +112,7 @@ namespace TS
 
 
 
-    void PacketParser::parse_adaptation_field_optional(PacketBuffer& buffer)
+    void PacketParser::parse_adaptation_field_optional(PacketBuffer& p_buffer)
     {
         _packet.adaptation_field->optional = AdaptationFieldOptional{};
 
@@ -79,82 +121,51 @@ namespace TS
         AdaptationFieldOptional& afo = *af.optional;
 
         // Read from buffer
-        auto af_buffer = buffer.read(af.length - adaptation_field_flags_size);
-
-        // Keep track of stuffing bytes length
-        uint8_t stuffing_bytes_length{ static_cast<uint8_t>(af_buffer.size()) };
+        auto af_buffer = p_buffer.read(af.length - adaptation_field_flags_size);
 
         // Set fields
-        auto cbegin_it{ cbegin(af_buffer) };
-        auto cend_it{ cbegin(af_buffer) };
         if (aff.PCR_flag)
         {
-            cend_it += PCR_size;
-
             afo.PCR = boost::dynamic_bitset<uint8_t>{ PCR_size * 8, 0x0 };
-            from_block_range(cbegin_it, cend_it, *afo.PCR);
-            
-            stuffing_bytes_length -= PCR_size;
+            from_block_range(cbegin(af_buffer), cbegin(af_buffer) + PCR_size, *afo.PCR);
+            af_buffer.erase(begin(af_buffer), begin(af_buffer) + PCR_size);
         }
 
         if (aff.OPCR_flag)
         {
-            cbegin_it = cend_it;
-            cend_it += OPCR_size;
-
             afo.OPCR = boost::dynamic_bitset<uint8_t>{ OPCR_size * 8, 0x0 };
-            from_block_range(cbegin_it, cend_it, *afo.OPCR);
-            
-            stuffing_bytes_length -= OPCR_size;
+            from_block_range(cbegin(af_buffer), cbegin(af_buffer) + OPCR_size, *afo.OPCR);
+            af_buffer.erase(begin(af_buffer), begin(af_buffer) + OPCR_size);
         }
 
         if (aff.splicing_point_flag)
         {
-            cbegin_it = cend_it;
-            cend_it += splicing_countdown_size;
-
-            afo.splice_countdown = static_cast<int8_t>(*cbegin_it);
-            
-            stuffing_bytes_length--;
+            afo.splice_countdown = static_cast<int8_t>(*cbegin(af_buffer));
+            af_buffer.erase(begin(af_buffer), begin(af_buffer) + splicing_countdown_size);
         }
 
         if (aff.transport_private_data_flag)
         {
             // Length
-            cbegin_it = cend_it;
-            cend_it += transport_private_data_length_size;
-
-            afo.transport_private_data_length = *cbegin_it;
-            
-            stuffing_bytes_length--;
+            afo.transport_private_data_length = *cbegin(af_buffer);
+            af_buffer.erase(begin(af_buffer), begin(af_buffer) + transport_private_data_length_size);
 
             // Data
-            cbegin_it = cend_it;
-            cend_it += *afo.transport_private_data_length;
-
-            afo.transport_private_data = std::vector<uint8_t>(cbegin_it, cend_it);
-            
-            stuffing_bytes_length -= *afo.transport_private_data_length;
+            afo.transport_private_data = std::vector<uint8_t>(cbegin(af_buffer), cbegin(af_buffer) + *afo.transport_private_data_length);
+            af_buffer.erase(begin(af_buffer), begin(af_buffer) + *afo.transport_private_data_length);
         }
 
         if (aff.extension_flag)
         {
-            cbegin_it = cend_it;
-            cend_it = cbegin_it + afo.extension->length;
-
-            parse_adaptation_extension(af_buffer, cbegin_it, cend_it);
-
-            stuffing_bytes_length -= afo.extension->length;
+            parse_adaptation_extension(af_buffer);
+            af_buffer.erase(begin(af_buffer), begin(af_buffer) + afo.extension->length);
         }
 
-        if (stuffing_bytes_length > 0)
+        if (af_buffer.size() > 0)
         {
-            cbegin_it = cend_it;
-            cend_it = cbegin_it + stuffing_bytes_length;
+            afo.stuffing_bytes = std::move(af_buffer);
 
-            afo.stuffing_bytes = std::vector<uint8_t>(cbegin_it, cend_it);
-
-            if (std::any_of(cbegin(*afo.stuffing_bytes), cend(*afo.stuffing_bytes),
+            if (std::any_of(cbegin(af_buffer), cend(af_buffer),
                 [](uint8_t b) { return b != stuffing_byte; }))
             {
                 throw InvalidStuffingBytes(_packet, _index);
@@ -164,58 +175,59 @@ namespace TS
 
 
 
-    void PacketParser::parse_adaptation_extension(std::vector<uint8_t> af_buffer, auto cbegin_it, auto cend_it)
+    void PacketParser::parse_adaptation_extension(std::vector<uint8_t>& af_buffer)
     {
         _packet.adaptation_field->optional->extension = AdaptationExtension{};
 
         AdaptationFieldOptional& afo = *_packet.adaptation_field->optional;
         AdaptationExtension& ae = *afo.extension;
+
+        // Set length
+        ae.length = af_buffer[0];
+        af_buffer.erase(begin(af_buffer));
+
+        // Create bitset from buffer
+        boost::dynamic_bitset<uint8_t> ae_bs{ adaptation_extension_flags_size * 8, af_buffer[0] };
+        af_buffer.erase(begin(af_buffer));
+
+        // Set flags
+        ae.legal_time_window_flag = ae_bs.test(legal_time_window_flag_mask.find_first());
+        ae.piecewise_rate_flag = ae_bs.test(piecewise_rate_flag_mask.find_first());
+        ae.seamless_splice_flag = ae_bs.test(seamless_splice_flag_mask.find_first());
+        ae.reserved = read_field<uint8_t>(ae_bs, reserved_mask);
+
+        if (ae.legal_time_window_flag)
+        {
+            boost::dynamic_bitset<uint8_t> ltw_bs{ adaptation_extension_LTW_field_size * 8, 0x0 };
+            from_block_range(cbegin(af_buffer), cbegin(af_buffer) + adaptation_extension_LTW_field_size, ltw_bs);
+            af_buffer.erase(begin(af_buffer), begin(af_buffer) + adaptation_extension_LTW_field_size);
+
+            ae.legal_time_window_valid_flag = ltw_bs.test(legal_time_window_valid_flag_mask.find_first());
+            ae.legal_time_window_offset = read_field<uint16_t>(ltw_bs, legal_time_window_offset_mask);
+        }
+        if (ae.piecewise_rate_flag)
+        {
+            boost::dynamic_bitset<uint8_t> piecewise_bs{ adaptation_extension_piecewise_field_size * 8, 0x0 };
+            from_block_range(cbegin(af_buffer), cbegin(af_buffer) + adaptation_extension_piecewise_field_size, piecewise_bs);
+            af_buffer.erase(begin(af_buffer), begin(af_buffer) + adaptation_extension_piecewise_field_size);
+
+            ae.piecewise_rate_reserved = read_field<uint8_t>(piecewise_bs, piecewise_rate_reserved_mask);
+            ae.piecewise_rate = read_field<uint32_t>(piecewise_bs, piecewise_rate_mask);
+        }
+        if (ae.seamless_splice_flag)
+        {
+            boost::dynamic_bitset<uint8_t> seamless_bs{ adaptation_extension_seamless_field_size * 8, 0x0 };
+            from_block_range(cbegin(af_buffer), cbegin(af_buffer) + adaptation_extension_seamless_field_size, seamless_bs);
+            af_buffer.erase(begin(af_buffer), begin(af_buffer) + adaptation_extension_seamless_field_size);
+
+            ae.seamless_splice_type = read_field<uint8_t>(seamless_bs, seamless_splice_type_mask);
+            ae.DTS_next_access_unit = read_field<uint64_t>(seamless_bs, DTS_next_access_unit_mask);
+        }
     }
 
 
 
-    void PacketParser::parse_adaptation_field(PacketBuffer& buffer)
+    void PacketParser::parse_payload_data(PacketBuffer& p_buffer)
     {
-        _packet.adaptation_field = AdaptationField{};
-
-        // Read from buffer
-        auto af_buffer = buffer.read(adaptation_field_length_size);
-
-        // Set fields
-        _packet.adaptation_field->length = af_buffer[0];
-        if (_packet.adaptation_field->length > 0)
-        {
-            parse_adaptation_field_flags(buffer);
-        }
-        if (_packet.adaptation_field->length > adaptation_field_flags_size)
-        {
-            parse_adaptation_field_optional(buffer);
-        }
-    }
-
-
-
-    void PacketParser::parse_payload_data(PacketBuffer& buffer)
-    {
-    }
-
-
-
-    void PacketParser::parse(PacketBuffer& buffer)
-    {
-        _index = 0;
-
-        parse_header(buffer);
-
-        if (_packet.header.adaptation_field_present())
-        {
-            parse_adaptation_field(buffer);
-        }
-        if (_packet.header.payload_data_present())
-        {
-            parse_payload_data(buffer);
-        }
-
-        _index++;
     }
 }

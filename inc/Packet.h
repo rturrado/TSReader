@@ -18,6 +18,11 @@ namespace TS
     constexpr uint8_t OPCR_size{ 6 };
     constexpr uint8_t splicing_countdown_size{ 1 };
     constexpr uint8_t transport_private_data_length_size{ 1 };
+    constexpr uint8_t adaptation_extension_length_size{ 1 };
+    constexpr uint8_t adaptation_extension_flags_size{ 1 };
+    constexpr uint8_t adaptation_extension_LTW_field_size{ 2 };
+    constexpr uint8_t adaptation_extension_piecewise_field_size{ 3 };
+    constexpr uint8_t adaptation_extension_seamless_field_size{ 5 };
 
     // Constants
     constexpr uint8_t sync_byte_valid_value{ 'G' };
@@ -83,6 +88,7 @@ namespace TS
         bool transport_private_data_flag{ false };
         bool extension_flag{ false };
     };
+
     struct AdaptationFieldOptional
     {
         std::optional<boost::dynamic_bitset<uint8_t>> PCR{};
