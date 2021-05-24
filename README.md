@@ -35,12 +35,12 @@ The code should use:
 ## DONE
 
 - [X] Read elephants.ts and print out a summary of the TS packet PIDs (PID hex code and count).
+- [X] Parse adaptation field and adaptation extension.
 
 ## TODO
 
-- [ ] Parse adaptation field, adaptation extension, and payload data.
-- [ ] Distinguish audio and video packets.
-- [ ] Get audio or video information from the packet.
+- [ ] Parse payload data.<br/>
+    Parsing of PSI (Program Specific Information) should let us know the PIDs for audio and video packets.
 - [ ] Write audio and video to output files.<br/>
     It would be good to do this in a generic way, e.g., as a stage where different actions could be performed on the parsed TS packet.<br/>
     `Read > Parse > (Write audio packet to audio file or video packet to video file _and/or_ Do some statistics... )`

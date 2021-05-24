@@ -36,7 +36,7 @@ namespace TS
 
     struct CommandLineParserException : public std::exception
     {
-        CommandLineParserException(const char* message) : std::exception{ message } {}
+        explicit CommandLineParserException(const char* message) : std::exception{ message } {}
     };
     struct InvalidNumberOfArguments : public CommandLineParserException
     {
@@ -44,32 +44,28 @@ namespace TS
     };
     struct UnrecognizedOption : public CommandLineParserException
     {
-        UnrecognizedOption(const char* message) : CommandLineParserException{ message } {}
+        explicit UnrecognizedOption(const char* message) : CommandLineParserException{ message } {}
     };
 
 
 
     // Packet parser
 
-    class InvalidSyncByte : public std::exception
+    struct PacketParserException : public std::exception
     {
-    public:
-        InvalidSyncByte(const Packet& packet, size_t index)
-        {
-            _message += std::to_string(packet.header.sync_byte) + " in packet " + std::to_string(index);
-        }
-        virtual const char* what() const override { return _message.c_str(); }
-    private:
-        std::string _message{ "invalid sync byte" };
+        explicit PacketParserException(const char* message) : std::exception{ message } {}
     };
-
-    class InvalidStuffingBytes : public std::exception
+    struct InvalidSyncByte : public PacketParserException
     {
-    public:
-        InvalidStuffingBytes(const Packet& packet, size_t index) { _message += " in packet " + std::to_string(index); }
-        virtual const char* what() const override { return _message.c_str(); }
-    private:
-        std::string _message{ "invalid stuffing bytes" };
+        InvalidSyncByte() : PacketParserException{ "invalid sync byte" } {};
+    };
+    struct InvalidStuffingBytes : public PacketParserException
+    {
+        InvalidStuffingBytes() : PacketParserException{ "invalid stuffing bytes" } {};
+    };
+    struct TransportError : public PacketParserException
+    {
+        TransportError() : PacketParserException{ "transport error" } {};
     };
 
 
@@ -89,6 +85,19 @@ namespace TS
         virtual const char* what() const override { return _message.c_str(); }
     private:
         std::string _message{};
+    };
+
+
+
+    // Other
+
+    class Unimplemented : public std::exception
+    {
+    public:
+        explicit Unimplemented(const char* message) { _message += message; }
+        virtual const char* what() const override { return _message.c_str(); }
+    private:
+        std::string _message{ "unimplemented: " };
     };
 }
 

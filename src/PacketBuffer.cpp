@@ -7,13 +7,6 @@
 
 namespace TS
 {
-    void PacketBuffer::reset_read_position()
-    {
-        _pos = 0;
-    }
-
-
-
     /* friend */
     std::ifstream& operator>>(std::ifstream& ifs, PacketBuffer& pb)
     {

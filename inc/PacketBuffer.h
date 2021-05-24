@@ -23,7 +23,8 @@ namespace TS
         template <bool BigEndian = false>
         std::vector<uint8_t> read(uint8_t n);
 
-        void reset_read_position();
+        uint8_t get_read_position() { return _pos; }
+        void reset_read_position() { _pos = 0;  }
 
         friend std::ifstream& operator>>(std::ifstream& ifs, PacketBuffer& pb);
 

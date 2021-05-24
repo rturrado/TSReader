@@ -165,6 +165,7 @@
     <ClInclude Include="inc\PacketBuffer.h" />
     <ClInclude Include="inc\FileReader.h" />
     <ClInclude Include="inc\Stats.h" />
+    <ClInclude Include="inc\Tables.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

@@ -26,11 +26,18 @@ namespace TS
             {
                 _stats->collect(parser.get_packet());
             }
+
+            std::cout << (parser.get_packet_index() - 1) << "\t" << parser.get_packet() << "\n";
+
+            if ((parser.get_packet_index() - 1) >= 1000)
+            {
+                break;
+            }
         }
 
         if (_stats)
         {
-            std::cout << *_stats << "\n";
+            std::cout << "\n" << *_stats << "\n";
         }
     }
 
