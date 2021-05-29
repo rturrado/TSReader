@@ -157,6 +157,7 @@
     <ClCompile Include="src\PacketBuffer.cpp" />
     <ClCompile Include="src\PacketParser.cpp" />
     <ClCompile Include="src\Stats.cpp" />
+    <ClCompile Include="src\Tables.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\Exception.h" />

@@ -19,12 +19,12 @@ namespace TS
         char* data() { return reinterpret_cast<char*>(_buffer.data()); }
 
         constexpr uint8_t size() { return packet_size; }
+        uint8_t size_not_read() { return packet_size - _pos; }
+        uint8_t get_read_position() { return _pos; }
+        void reset_read_position() { _pos = 0; }
 
         template <bool BigEndian = false>
         std::vector<uint8_t> read(uint8_t n);
-
-        uint8_t get_read_position() { return _pos; }
-        void reset_read_position() { _pos = 0;  }
 
         friend std::ifstream& operator>>(std::ifstream& ifs, PacketBuffer& pb);
 
@@ -50,7 +50,11 @@ namespace TS
             auto cbegin_it{ crend(_buffer) - _pos - n };
             auto cend_it{ crend(_buffer) - _pos };
             ret = std::vector<uint8_t>{ cbegin_it, cend_it };
+            // ****
+            // TODO: fix? this is a reverse vector; but we should apply endianness to word level?
+            // ****
         }
+
         else
         {
             auto cbegin_it{ cbegin(_buffer) + _pos };
@@ -62,7 +66,9 @@ namespace TS
 
         return ret;
     }
+    // ****
     // TODO: should we treat endiannes at this point or at the caller point?
+    // ****
 }
 
 #endif

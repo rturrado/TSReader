@@ -20,18 +20,20 @@ namespace TS
         PacketParser parser{};
         for (PacketBuffer buffer{}; ifs >> buffer; )
         {
-            parser.parse(buffer);
-
-            if (_stats)
+            try
             {
-                _stats->collect(parser.get_packet());
+                parser.parse(buffer);
+
+                if (_stats)
+                {
+                    _stats->collect(parser.get_packet());
+                }
             }
-
-            std::cout << (parser.get_packet_index() - 1) << "\t" << parser.get_packet() << "\n";
-
-            if ((parser.get_packet_index() - 1) >= 1000)
+            catch (const std::exception& err)
             {
-                break;
+                std::ostringstream oss{};
+                oss << err.what() << "\n\tindex=" << parser.get_packet_index() << ", " << parser.get_packet() << "\n";
+                throw std::exception(oss.str().c_str());
             }
         }
 

@@ -15,6 +15,9 @@ using namespace TS;
 
 void print_usage()
 {
+    // ****
+    // TODO: [-e|--extract] <STREAM TYPE = STREAM FILE PATH>
+    // ****
     std::cout << "Usage: ts_reader <TS FILE PATH> [-s|--stats]\n";
 }
 

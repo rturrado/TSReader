@@ -55,17 +55,45 @@ namespace TS
     {
         explicit PacketParserException(const char* message) : std::exception{ message } {}
     };
-    struct InvalidSyncByte : public PacketParserException
+    struct InvalidPATTableDataSize : public PacketParserException
     {
-        InvalidSyncByte() : PacketParserException{ "invalid sync byte" } {};
+        InvalidPATTableDataSize() : PacketParserException{ "invalid PAT table data size" } {};
+    };
+    struct InvalidPrivateBit : public PacketParserException
+    {
+        InvalidPrivateBit() : PacketParserException{ "invalid private bit" } {};
+    };
+    struct InvalidReservedBits : public PacketParserException
+    {
+        InvalidReservedBits() : PacketParserException{ "invalid reserved bits" } {};
+    };
+    struct InvalidSectionLength : public PacketParserException
+    {
+        InvalidSectionLength() : PacketParserException{ "invalid section length" } {};
+    };
+    struct InvalidSectionSyntaxIndicator : public PacketParserException
+    {
+        InvalidSectionSyntaxIndicator() : PacketParserException{ "invalid section syntax indicator" } {};
     };
     struct InvalidStuffingBytes : public PacketParserException
     {
         InvalidStuffingBytes() : PacketParserException{ "invalid stuffing bytes" } {};
     };
+    struct InvalidSyncByte : public PacketParserException
+    {
+        InvalidSyncByte() : PacketParserException{ "invalid sync byte" } {};
+    };
+    struct InvalidUnusedBits : public PacketParserException
+    {
+        InvalidUnusedBits() : PacketParserException{ "invalid unused bits" } {};
+    };
     struct TransportError : public PacketParserException
     {
         TransportError() : PacketParserException{ "transport error" } {};
+    };
+    struct UnknownPES : public PacketParserException
+    {
+        UnknownPES() : PacketParserException{ "unknown PES" } {};
     };
 
 

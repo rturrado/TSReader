@@ -1,9 +1,14 @@
 #include "Packet.h"
+#include "Tables.h"
 
 #include <iostream>
 
 namespace TS
 {
+    // ****
+    // TODO: DO NOT use global variables?
+    // ****
+
     // NIT PID is set to 0x10 by default
     // However, if PAT table associates program 0 with a different PID, we can update the NIT PID to that new value
 
@@ -129,9 +134,56 @@ namespace TS
     std::ostream& operator<<(std::ostream& os, const Packet& packet)
     {
         os << "packet=[" << packet.header;
-        if (packet.adaptation_field_present()) { os << ", " << *packet.adaptation_field; }
-        if (packet.payload_data_present()) { os << ", " << *packet.payload_data; }
+        if (packet.has_adaptation_field()) { os << ", " << *packet.adaptation_field; }
+        if (packet.has_payload_data()) { os << ", " << *packet.payload_data; }
         os << "]";
         return os;
+    }
+
+
+
+    // TableHeader
+
+    bool TableHeader::has_syntax_section() const
+    {
+        return section_length != 0;
+    }
+
+
+
+    // Packet
+
+    bool Packet::get_payload_unit_start_indicator() const
+    {
+        return header.payload_unit_start_indicator;
+    }
+    uint16_t Packet::get_PID() const
+    {
+        return header.PID;
+    }
+    uint8_t Packet::get_continuity_counter() const
+    {
+        return header.continuity_counter;
+    }
+
+    bool Packet::has_adaptation_field() const
+    {
+        return header.adaptation_field_control == 2 || header.adaptation_field_control == 3;
+    }
+    bool Packet::has_payload_data() const
+    {
+        return header.adaptation_field_control == 1 || header.adaptation_field_control == 3;
+    }
+
+    bool Packet::payload_contains_PAT_table() const { return header.PID == PAT_PID; }
+    bool Packet::payload_contains_CAT_table() const { return header.PID == CAT_PID; }
+    bool Packet::payload_contains_NIT_table() const { return header.PID == get_NIT_PID(); }
+    bool Packet::payload_contains_PMT_table() const { return get_PAT_map().contains(header.PID); }
+    bool Packet::payload_contains_PSI() const
+    {
+        return payload_contains_PAT_table()
+            || payload_contains_CAT_table()
+            || payload_contains_NIT_table()
+            || payload_contains_PMT_table();
     }
 }

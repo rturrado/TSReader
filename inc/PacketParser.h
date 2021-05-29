@@ -21,14 +21,17 @@ namespace TS
         void parse_adaptation_field(PacketBuffer& buffer);
         void parse_adaptation_field_flags(PacketBuffer& buffer);
         void parse_adaptation_field_optional(PacketBuffer& buffer);
-        void parse_adaptation_extension(std::vector<uint8_t>& af_buffer);
+        void parse_adaptation_extension(PacketBuffer& p_buffer);
         void parse_payload_data(PacketBuffer& buffer);
+        void parse_payload_data_as_PES(PacketBuffer& p_buffer);
+        void parse_payload_data_as_PSI(PacketBuffer& p_buffer);
         void parse_pointer(PacketBuffer& buffer);
         void parse_table_header(PacketBuffer& buffer);
+        void parse_table_syntax_section(PacketBuffer& p_buffer);
         void parse_PAT_table(PacketBuffer& p_buffer);
         void parse_PMT_table(PacketBuffer& p_buffer);
-        void parse_table_syntax(PacketBuffer& p_buffer);
-        void parse_elementary_stream_specific_data(PacketBuffer& p_buffer);
+        void parse_elementary_stream_specific_data(PacketBuffer& p_buffer, uint16_t elementary_stream_specific_data_size);
+        std::vector<Descriptor> parse_descriptors(PacketBuffer& p_buffer, uint8_t descriptors_size);
 
         Packet _packet{};
     };
