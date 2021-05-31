@@ -36,11 +36,19 @@ namespace TS
 
     struct CommandLineParserException : public std::exception
     {
+        CommandLineParserException() {}
         explicit CommandLineParserException(const char* message) : std::exception{ message } {}
     };
     struct InvalidNumberOfArguments : public CommandLineParserException
     {
         InvalidNumberOfArguments() : CommandLineParserException{ "invalid number of arguments" } {}
+    };
+    struct InvalidStreamType : public CommandLineParserException
+    {
+        explicit InvalidStreamType(const char* message) { _message += message; }
+        virtual const char* what() const override { return _message.c_str(); }
+    private:
+        std::string _message{ "invalid stream type: " };
     };
     struct UnrecognizedOption : public CommandLineParserException
     {

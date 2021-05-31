@@ -1,11 +1,14 @@
 #include "Exception.h"
 #include "FileReader.h"
+#include "StreamType.h"
 
+#include <algorithm>
 #include <chrono>
 #include <exception>
 #include <filesystem>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include <boost/program_options.hpp>
 
@@ -15,10 +18,10 @@ using namespace TS;
 
 void print_usage()
 {
-    // ****
-    // TODO: [-e|--extract] <STREAM TYPE = STREAM FILE PATH>
-    // ****
-    std::cout << "Usage: ts_reader <TS FILE PATH> [-s|--stats]\n";
+    std::cout << "Usage: ts_reader <TS FILE PATH> [-e|--extract <STREAM TYPE LIST>] [-s|--stats]\n";
+    std::cout << "\n";
+    std::cout << "  E.g: ts_reader elephants.ts -e 0xf,0x1b\n";
+    std::cout << "       ts_reader elephants.ts --stats\n";
 }
 
 
@@ -26,6 +29,7 @@ void print_usage()
 struct CommandLineValues
 {
     std::filesystem::path ts_file_path{};
+    std::vector<uint8_t> stream_type_list{};
     bool collect_stats{ false };
 };
 
@@ -36,6 +40,7 @@ CommandLineValues parse_command_line(int argc, char* argv[])
     namespace po = boost::program_options;
 
     std::filesystem::path ts_file_path{};
+    std::string stream_type_list_str{};
     bool collect_stats{ false };
 
     po::positional_options_description pd;
@@ -44,6 +49,7 @@ CommandLineValues parse_command_line(int argc, char* argv[])
     po::options_description description{};
     description.add_options()
         ("ts-file-path", po::value<std::filesystem::path>(&ts_file_path), "TS file path")
+        ("extract,e", po::value<std::string>(&stream_type_list_str), "extract stream type to file")
         ("stats,s", "collect stats")
         ;
 
@@ -58,6 +64,8 @@ CommandLineValues parse_command_line(int argc, char* argv[])
         throw UnrecognizedOption{ err.what() };
     }
 
+    // Parse TS file path
+    //
     if (!vm.count("ts-file-path"))
     {
         throw InvalidNumberOfArguments{};
@@ -66,9 +74,49 @@ CommandLineValues parse_command_line(int argc, char* argv[])
     {
         throw TSFilePathNotFound{ ts_file_path };
     }
+
+    // Parse extract option
+    // 
+    std::vector<uint8_t> stream_type_list{};
+    if (vm.count("extract"))
+    {
+        std::istringstream iss{ stream_type_list_str };
+        std::string stream_type_str{};
+        while (std::getline(iss, stream_type_str, ','))
+        {
+            uint8_t stream_type{ 0 };
+
+            // Convert stream type to number
+            // These operations can throw
+            if (stream_type_str.starts_with("0x") or stream_type_str.starts_with("0X"))
+            {
+                stream_type = std::stoi(stream_type_str, 0, 16);
+            }
+            else if (stream_type_str.starts_with("0"))
+            {
+                stream_type = std::stoi(stream_type_str, 0, 8);
+            }
+            else
+            {
+                stream_type = std::stoi(stream_type_str);
+            }
+
+            // Check stream type is valid
+            if (not is_valid_stream_type(stream_type))
+            {
+                throw InvalidStreamType{ stream_type_str.c_str() };
+            }
+
+            // Add it to the list of stream types
+            stream_type_list.push_back(stream_type);
+        }
+    }
+
+    // Parse stats option
+    //
     collect_stats = vm.count("stats");
 
-    return { ts_file_path, collect_stats };
+    return { ts_file_path, stream_type_list, collect_stats };
 }
 
 
@@ -80,8 +128,8 @@ int main(int argc, char* argv[])
     {
         auto start = std::chrono::high_resolution_clock::now();
 
-        auto [ ts_file_path, collect_stats ] = parse_command_line(argc, argv);
-        FileReader ts_reader{ ts_file_path, collect_stats };
+        auto [ ts_file_path, stream_type_list, collect_stats ] = parse_command_line(argc, argv);
+        FileReader ts_reader{ ts_file_path, stream_type_list, collect_stats };
         ts_reader.start();
         error = false;
 

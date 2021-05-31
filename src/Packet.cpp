@@ -24,6 +24,8 @@ namespace TS
         NIT_PID = value;
     }
 
+
+
     /* friend */
     std::ostream& operator<<(std::ostream& os, const AdaptationExtension& ae)
     {

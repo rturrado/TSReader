@@ -157,6 +157,7 @@
     <ClCompile Include="src\PacketBuffer.cpp" />
     <ClCompile Include="src\PacketParser.cpp" />
     <ClCompile Include="src\Stats.cpp" />
+    <ClCompile Include="src\StreamType.cpp" />
     <ClCompile Include="src\Tables.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -166,6 +167,7 @@
     <ClInclude Include="inc\PacketBuffer.h" />
     <ClInclude Include="inc\FileReader.h" />
     <ClInclude Include="inc\Stats.h" />
+    <ClInclude Include="inc\StreamType.h" />
     <ClInclude Include="inc\Tables.h" />
   </ItemGroup>
   <ItemGroup>

@@ -73,9 +73,6 @@ namespace TS
     constexpr uint16_t NIT_program_num{ 0 };
     // Tags
     constexpr uint8_t language_tag{ 0xa };
-    // Stream types
-    constexpr uint8_t audio_stream_type{ 0xf };
-    constexpr uint8_t video_stream_type{ 0x1b };
 
 
 

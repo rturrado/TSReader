@@ -588,7 +588,7 @@ namespace TS
         }
     }
 
-    std::vector<Descriptor> PacketParser::parse_descriptors(PacketBuffer& p_buffer, uint8_t descriptors_size)
+    std::vector<Descriptor> PacketParser::parse_descriptors(PacketBuffer& p_buffer, uint16_t descriptors_size)
     {
         std::vector<Descriptor> ret{};
 
