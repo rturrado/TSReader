@@ -57,6 +57,25 @@ namespace TS
 
 
 
+    // Packet buffer
+
+    class PacketBufferOverrun : public std::exception
+    {
+    public:
+        PacketBufferOverrun(uint8_t bytes_requested_to_read, uint8_t bytes_left_to_read)
+        {
+            std::ostringstream oss;
+            oss << "trying to read " << static_cast<int16_t>(bytes_requested_to_read) << " bytes from buffer, "
+                << "but there are only " << static_cast<int16_t>(bytes_left_to_read) << " bytes left to read";
+            _message = oss.str();
+        }
+        virtual const char* what() const override { return _message.c_str(); }
+    private:
+        std::string _message{};
+    };
+
+
+
     // Packet parser
 
     struct PacketParserException : public std::exception
@@ -106,21 +125,11 @@ namespace TS
 
 
 
-    // Packet buffer
+    // Packet processor
 
-    class PacketBufferOverrun : public std::exception
+    struct InvalidCRC32 : public std::exception
     {
-    public:
-        PacketBufferOverrun(uint8_t bytes_requested_to_read, uint8_t bytes_left_to_read)
-        {
-            std::ostringstream oss;
-            oss << "trying to read " << static_cast<int16_t>(bytes_requested_to_read) << " bytes from buffer, "
-                << "but there are only " << static_cast<int16_t>(bytes_left_to_read) << " bytes left to read";
-            _message = oss.str();
-        }
-        virtual const char* what() const override { return _message.c_str(); }
-    private:
-        std::string _message{};
+        InvalidCRC32() : std::exception{ "invalid CRC32" } {};
     };
 
 

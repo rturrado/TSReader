@@ -151,24 +151,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\FileWriter.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\FileReader.cpp" />
     <ClCompile Include="src\Packet.cpp" />
     <ClCompile Include="src\PacketBuffer.cpp" />
     <ClCompile Include="src\PacketParser.cpp" />
+    <ClCompile Include="src\PacketProcessor.cpp" />
+    <ClCompile Include="src\PES_Data.cpp" />
     <ClCompile Include="src\Stats.cpp" />
     <ClCompile Include="src\StreamType.cpp" />
-    <ClCompile Include="src\Tables.cpp" />
+    <ClCompile Include="src\PSI_Tables.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\Exception.h" />
+    <ClInclude Include="inc\FileWriter.h" />
     <ClInclude Include="inc\PacketParser.h" />
     <ClInclude Include="inc\Packet.h" />
     <ClInclude Include="inc\PacketBuffer.h" />
     <ClInclude Include="inc\FileReader.h" />
+    <ClInclude Include="inc\PacketProcessor.h" />
+    <ClInclude Include="inc\PES_Data.h" />
     <ClInclude Include="inc\Stats.h" />
     <ClInclude Include="inc\StreamType.h" />
-    <ClInclude Include="inc\Tables.h" />
+    <ClInclude Include="inc\PSI_Tables.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

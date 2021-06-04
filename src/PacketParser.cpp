@@ -1,9 +1,10 @@
 #include "Exception.h"
 #include "Packet.h"
 #include "PacketParser.h"
-#include "Tables.h"
+#include "PSI_Tables.h"
 
 #include <algorithm>
+#include <boost/crc.hpp>
 #include <boost/dynamic_bitset/dynamic_bitset.hpp>
 #include <iostream>
 #include <iterator>
@@ -257,29 +258,7 @@ namespace TS
 
     void PacketParser::parse_payload_data_as_PES(PacketBuffer& p_buffer)
     {
-        // ****
-        // TODO: read payload data in Big Endian?
-        // TODO: write to file and check if files can be played
-        // ****
-        auto pd_buffer = p_buffer.read(p_buffer.size_not_read());
-
-        auto PES_PID = _packet.get_PID();
-
-        auto& PMT_map = get_PMT_map();
-        if (PMT_map.contains(PES_PID))
-        {
-            auto& PES_map = get_PES_map();
-            auto& essd_data = PES_map[PES_PID];
-            // ****
-            // TODO: it may be a lot clearer to do these actions in a different stage, after the parsing stage
-            // TODO: actually, this action may be optional, e.g. we may not store some stream data
-            // ****
-            std::copy(cbegin(pd_buffer), cend(pd_buffer), std::back_inserter(essd_data));
-        }
-        else
-        {
-            throw UnknownPES{};
-        }
+        _packet.payload_data->PES_data = p_buffer.read(p_buffer.size_not_read());
     }
 
     void PacketParser::parse_payload_data_as_PSI(PacketBuffer& p_buffer)
@@ -290,12 +269,6 @@ namespace TS
         }
 
         parse_table_header(p_buffer);
-
-        TableHeader& th = *_packet.payload_data->table_header;
-        if (th.has_syntax_section())
-        {
-            parse_table_syntax_section(p_buffer);
-        }
     }
 
     void PacketParser::parse_pointer(PacketBuffer& p_buffer)
@@ -334,6 +307,9 @@ namespace TS
     {
         _packet.payload_data->table_header = TableHeader{};
 
+        // Save packet buffer start read position
+        auto packet_buffer_start_pos = p_buffer.get_read_position();
+
         // Read from buffer
         auto th_buffer = p_buffer.read<true>(table_header_size);
 
@@ -343,7 +319,6 @@ namespace TS
 
         // Set fields
         TableHeader& th = *_packet.payload_data->table_header;
-
         th.table_id = read_field<uint8_t>(th_bs, th_table_id_mask_bs);
 
         // Check end of table section repeat case
@@ -362,11 +337,13 @@ namespace TS
             bool payload_contains_PAT_CAT_or_PMT_table = _packet.payload_contains_PAT_table()
                 || _packet.payload_contains_CAT_table()
                 || _packet.payload_contains_PMT_table();
+
             th.section_syntax_indicator = th_bs.test(th_section_syntax_indicator_mask_bs.find_first());
             if (th.section_syntax_indicator != payload_contains_PAT_CAT_or_PMT_table)
             {
                 throw InvalidSectionSyntaxIndicator{};
             }
+
             th.private_bit = th_bs.test(th_private_bit_mask_bs.find_first());
             if (th.private_bit == payload_contains_PAT_CAT_or_PMT_table)
             {
@@ -380,6 +357,7 @@ namespace TS
             {
                 throw InvalidUnusedBits{};
             }
+
             th.section_length = read_field<uint16_t>(th_bs, th_section_length_mask_bs);
             if (th.section_length > th_max_section_length)
             {
@@ -389,6 +367,24 @@ namespace TS
             {
                 throw Unimplemented{ "PSI table spanning across different packets" };
             }
+            
+            if (th.has_syntax_section())
+            {
+                parse_table_syntax_section(p_buffer);
+
+                // Save packet buffer end read position
+                auto packet_buffer_end_pos = p_buffer.get_read_position();
+
+                // Check CRC32
+                auto byte_count{ packet_buffer_end_pos - packet_buffer_start_pos - tss_crc32_size };
+                using crc_32_mpeg2 = boost::crc_optimal<32, 0x04C11DB7, 0xFFFFFFFF, 0x00000000, false, false>;
+                crc_32_mpeg2 result{};
+                result.process_bytes(p_buffer.data() + packet_buffer_start_pos, byte_count);
+                if (th.table_syntax->crc32 != result.checksum())
+                {
+                    throw InvalidCRC32{};
+                }
+            }
         }
     }
 
@@ -397,35 +393,25 @@ namespace TS
         _packet.payload_data->table_header->table_syntax = TableSyntax{};
 
         // Read from buffer
-        auto ts_buffer = p_buffer.read(table_syntax_section_size);
+        auto ts_buffer = p_buffer.read<true>(table_syntax_section_size);
+
+        // Create bitset from buffer
+        boost::dynamic_bitset<uint8_t> ts_bs{ table_syntax_section_size * 8, 0x0 };
+        from_block_range(cbegin(ts_buffer), cend(ts_buffer), ts_bs);
 
         // Set fields
         TableSyntax& ts = *_packet.payload_data->table_header->table_syntax;
 
-        ts.table_id_extension = *(reinterpret_cast<uint16_t*>(&ts_buffer[0]));
-        ts_buffer.erase(begin(ts_buffer), begin(ts_buffer) + tss_table_id_extension_size);
-
-        // Create bitset from buffer
-        boost::dynamic_bitset<uint8_t> ts_bs{ tss_reserved_version_current_next_indicator_size * 8, ts_buffer[0] };
+        ts.table_id_extension = read_field<uint16_t>(ts_bs, tss_table_id_extension_mask_bs);
 
         if (not all_field_bits_set(ts_bs, tss_reserved_bits_mask_bs))
         {
             throw InvalidReservedBits{};
         }
         ts.version_number = read_field<uint8_t>(ts_bs, tss_version_number_mask_bs);
-        // ****
-        // TODO: should we consider version number to update or not PAT_map?
-        // ****
         ts.current_next_indicator = ts_bs.test(tss_current_next_indicator_mask_bs.find_first());
-        // ****
-        // TODO: should we store table data in PAT_map if current/next indicator is true,
-        //       and store table data in a buffer if current/next indicator is false?
-        // ****
-        ts_buffer.erase(begin(ts_buffer), begin(ts_buffer) + tss_reserved_version_current_next_indicator_size);
-
-        ts.section_number = ts_buffer[0];
-        ts.last_section_number = ts_buffer[1];
-        ts_buffer.erase(begin(ts_buffer), begin(ts_buffer) + tss_section_number_size + tss_last_section_number_size);
+        ts.section_number = read_field<uint8_t>(ts_bs, tss_section_number_mask_bs);
+        ts.last_section_number = read_field<uint8_t>(ts_bs, tss_last_section_number_mask_bs);
 
         if (_packet.payload_contains_PAT_table())
         {
@@ -443,16 +429,27 @@ namespace TS
         {
             parse_PMT_table(p_buffer);
         }
-        // TODO: read and check CRC32
+
+        ts_buffer = p_buffer.read<true>(tss_crc32_size);
+        ts.crc32 = *(reinterpret_cast<uint32_t*>(&ts_buffer[0]));
     }
 
     void PacketParser::parse_PAT_table(PacketBuffer& p_buffer)
     {
+        // Check PAT table size is not null
         TableHeader& th = *_packet.payload_data->table_header;
 
         const uint16_t table_data_size = th.section_length
             - table_syntax_section_size
             - tss_crc32_size;
+
+        if (table_data_size == 0)
+        {
+            return;
+        }
+
+        // Create the PAT table
+        _packet.payload_data->table_header->table_syntax->table_data = PAT_Table{};
 
         // Read from buffer
         auto td_buffer = p_buffer.read<true>(static_cast<uint8_t>(table_data_size));
@@ -461,6 +458,10 @@ namespace TS
         {
             throw InvalidPATTableDataSize{};
         }
+
+        // Set fields
+        TableSyntax& ts = *th.table_syntax;
+        PAT_Table& patt = std::get<PAT_Table>(ts.table_data);
 
         for (auto it = cbegin(td_buffer); it != cend(td_buffer); it += PAT_table_data_program_size)
         {
@@ -475,25 +476,14 @@ namespace TS
             }
             uint16_t program_map_PID = read_field<uint16_t>(td_bs, PAT_table_data_program_map_PID_mask_bs);
 
-            // ****
-            // TODO: it may be a lot clearer to do these actions in a different stage, after the parsing stage
-            // ****
-
-            // Update PAT table
-            TPAT_map& PAT_map = get_PAT_map();
-            PAT_map[program_map_PID] = program_num;
-
-            // Update NIT PID if needed
-            if (program_num == NIT_program_num && program_map_PID != default_NIT_PID)
-            {
-                set_NIT_PID(program_map_PID);
-            }
+            patt.data.push_back({ program_num, program_map_PID });
         }
     }
 
     void PacketParser::parse_PMT_table(PacketBuffer& p_buffer)
     {
-        _packet.payload_data->table_header->table_syntax->PMT_table = PMTTable{};
+        // Create the PMT table
+        _packet.payload_data->table_header->table_syntax->table_data = PMT_Table{};
 
         // Read from buffer
         auto td_buffer = p_buffer.read<true>(static_cast<uint8_t>(PMT_table_data_header_size));
@@ -504,7 +494,8 @@ namespace TS
 
         // Set fields
         TableHeader& th = *_packet.payload_data->table_header;
-        PMTTable& pmtt = *th.table_syntax->PMT_table;
+        TableSyntax& ts = *th.table_syntax;
+        PMT_Table& pmtt = std::get<PMT_Table>(ts.table_data);
 
         if (not all_field_bits_set(td_bs, PMT_reserved_bits_mask_bs))
         {
@@ -538,8 +529,10 @@ namespace TS
 
     void PacketParser::parse_elementary_stream_specific_data(PacketBuffer& p_buffer, uint16_t elementary_stream_specific_data_size)
     {
+        // Create the ESSD info data
         TableHeader& th = *_packet.payload_data->table_header;
-        PMTTable& pmtt = *th.table_syntax->PMT_table;
+        TableSyntax& ts = *th.table_syntax;
+        PMT_Table& pmtt = std::get<PMT_Table>(ts.table_data);
         pmtt.ESSD_info_data = std::vector<ESSD>{};
 
         while (elementary_stream_specific_data_size)
@@ -575,14 +568,6 @@ namespace TS
             }
 
             pmtt.ESSD_info_data->push_back(essd);
-
-            // ****
-            // TODO: it may be a lot clearer to do these actions in a different stage, after the parsing stage
-            // ****
-            
-            // Update PMT table
-            TPMT_map& PMT_map = get_PMT_map();
-            PMT_map[essd.elementary_PID] = essd.stream_type;
 
             elementary_stream_specific_data_size -= (ESSD_header_size + essd.info_length);
         }

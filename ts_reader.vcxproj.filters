@@ -33,10 +33,19 @@
     <ClCompile Include="src\Stats.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Tables.cpp">
+    <ClCompile Include="src\PSI_Tables.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\StreamType.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PacketProcessor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FileWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PES_Data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -59,10 +68,19 @@
     <ClInclude Include="inc\Stats.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\Tables.h">
+    <ClInclude Include="inc\PSI_Tables.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\StreamType.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\PacketProcessor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\FileWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\PES_Data.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

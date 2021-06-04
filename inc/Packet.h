@@ -37,7 +37,7 @@ namespace TS
     constexpr uint8_t table_header_size{ 3 };
     constexpr uint8_t th_table_id_size{ 1 };
     constexpr uint16_t th_max_section_length{ 1021 };
-    // Table syntax setion
+    // Table syntax section
     constexpr uint16_t table_syntax_section_size{ 5 };
     constexpr uint16_t tss_table_id_extension_size{ 2 };
     constexpr uint8_t tss_reserved_version_current_next_indicator_size{ 1 };
@@ -78,8 +78,23 @@ namespace TS
 
     // NIT PID accessors
     //
-    uint16_t get_NIT_PID();
-    void set_NIT_PID(uint16_t value);
+    class NIT_PID
+    {
+    public:
+        NIT_PID() = default;
+        NIT_PID(const NIT_PID&) = delete;
+        NIT_PID(NIT_PID&) = delete;
+        NIT_PID& operator=(const NIT_PID&) = delete;
+        NIT_PID& operator=(NIT_PID&&) = delete;
+
+        static NIT_PID& get_instance();
+
+        uint16_t get_NIT_PID();
+        void set_NIT_PID(uint16_t value);
+    private:
+        uint16_t _value{ default_NIT_PID };
+    };
+
 
 
     // Masks
@@ -136,9 +151,36 @@ namespace TS
     const boost::dynamic_bitset<uint8_t> th_section_length_mask_bs{ 24, 0x00'03'ff };
 
     // Table syntax section
-    const boost::dynamic_bitset<uint8_t> tss_reserved_bits_mask_bs{ 8, 0xc0 };
-    const boost::dynamic_bitset<uint8_t> tss_version_number_mask_bs{ 8, 0b00'11'11'10 };
-    const boost::dynamic_bitset<uint8_t> tss_current_next_indicator_mask_bs{ 8, 0x1 };
+    const std::array<uint8_t, 5> tss_table_id_extension_mask_array{ 0xff, 0xff, 0x00, 0x00, 0x00 };
+    const std::array<uint8_t, 5> tss_reserved_bits_mask_array{ 0x00, 0x00, 0xc0, 0x00, 0x00 };
+    const std::array<uint8_t, 5> tss_version_number_mask_array{ 0x00, 0x00, 0x3e, 0x00, 0x00 };
+    const std::array<uint8_t, 5> tss_current_next_indicator_mask_array{ 0x00, 0x00, 0x01, 0x00, 0x00 };
+    const std::array<uint8_t, 5> tss_section_number_mask_array{ 0x00, 0x00, 0x00, 0xff, 0x00 };
+    const std::array<uint8_t, 5> tss_last_section_number_mask_array{ 0x00, 0x00, 0x00, 0x00, 0xff };
+    const boost::dynamic_bitset<uint8_t> tss_table_id_extension_mask_bs{
+        crbegin(tss_table_id_extension_mask_array),
+        crend(tss_table_id_extension_mask_array)
+    };
+    const boost::dynamic_bitset<uint8_t> tss_reserved_bits_mask_bs{
+        crbegin(tss_reserved_bits_mask_array),
+        crend(tss_reserved_bits_mask_array)
+    };
+    const boost::dynamic_bitset<uint8_t> tss_version_number_mask_bs{
+        crbegin(tss_version_number_mask_array),
+        crend(tss_version_number_mask_array)
+    };
+    const boost::dynamic_bitset<uint8_t> tss_current_next_indicator_mask_bs{
+        crbegin(tss_current_next_indicator_mask_array),
+        crend(tss_current_next_indicator_mask_array)
+    };
+    const boost::dynamic_bitset<uint8_t> tss_section_number_mask_bs{
+        crbegin(tss_section_number_mask_array),
+        crend(tss_section_number_mask_array)
+    };
+    const boost::dynamic_bitset<uint8_t> tss_last_section_number_mask_bs{
+        crbegin(tss_last_section_number_mask_array),
+        crend(tss_last_section_number_mask_array)
+    };
 
     // PAT table
     const boost::dynamic_bitset<uint8_t> PAT_table_data_table_id_extension_mask_bs{ 32, 0xff'ff'00'00 };
@@ -207,12 +249,21 @@ namespace TS
         std::optional<std::vector<Descriptor>> descriptors{};
     };
 
-    struct PMTTable
+    struct PMT_Table
     {
         uint16_t PCR_PID{ 0 };
         uint16_t program_info_length{ 0 };
+
         std::optional<std::vector<Descriptor>> program_descriptors{};
         std::optional<std::vector<ESSD>> ESSD_info_data{};
+    };
+
+    struct PAT_Table
+    {
+        using program_num = uint16_t;
+        using program_map_PID = uint16_t;
+
+        std::vector<std::pair<program_num, program_map_PID>> data{};
     };
 
     struct TableSyntax
@@ -222,7 +273,7 @@ namespace TS
         bool current_next_indicator{ false };
         uint8_t section_number{ 0 };
         uint8_t last_section_number{ 0 };
-        std::optional<PMTTable> PMT_table{};
+        std::variant<PAT_Table, PMT_Table> table_data{};
         uint32_t crc32{ 0 };
     };
 
@@ -251,6 +302,10 @@ namespace TS
     {
         std::optional<Pointer> pointer{};
         std::optional<TableHeader> table_header{};
+        std::optional<std::vector<uint8_t>> PES_data{};
+
+        bool has_PES_data() const;
+        const std::vector<uint8_t>& get_PES_data() const;
 
         friend std::ostream& operator<<(std::ostream& os, const PayloadData& pd);
     };

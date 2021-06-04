@@ -102,7 +102,7 @@ CommandLineValues parse_command_line(int argc, char* argv[])
             }
 
             // Check stream type is valid
-            if (not is_valid_stream_type(stream_type))
+            if (not StreamTypeMap::get_instance().is_valid_stream_type(stream_type))
             {
                 throw InvalidStreamType{ stream_type_str.c_str() };
             }
@@ -129,7 +129,8 @@ int main(int argc, char* argv[])
         auto start = std::chrono::high_resolution_clock::now();
 
         auto [ ts_file_path, stream_type_list, collect_stats ] = parse_command_line(argc, argv);
-        FileReader ts_reader{ ts_file_path, stream_type_list, collect_stats };
+
+        FileReader ts_reader{ ts_file_path, std::move(stream_type_list), collect_stats };
         ts_reader.start();
         error = false;
 

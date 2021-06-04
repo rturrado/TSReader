@@ -1,32 +1,79 @@
 #include "Exception.h"
 #include "FileReader.h"
+#include "FileWriter.h"
 #include "PacketBuffer.h"
 #include "PacketParser.h"
+#include "PacketProcessor.h"
+#include "PES_Data.h"
+#include "PSI_Tables.h"
 
 #include <array>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <vector>
 
 namespace TS
 {
+    FileReader::FileReader(
+        const std::filesystem::path& file_path,
+        std::vector<uint8_t>&& stream_type_list,
+        bool collect_stats)
+        : _stream_type_list{ std::move(stream_type_list) }
+        , _collect_stats{ collect_stats }
+    {
+        _ifs.open(file_path, std::fstream::binary);
+        if (!_ifs)
+        {
+            throw CouldNotOpenTSFile(file_path);
+        }
+    }
+
+    FileReader::~FileReader()
+    {
+        _ifs.close();
+    }
+
     void FileReader::start()
     {
-        std::ifstream ifs(_file_path, std::fstream::binary);
-        if (!ifs)
-        {
-            throw CouldNotOpenTSFile(_file_path);
-        }
+        // Initialize writers
+        std::vector<FileWriter> writers{};
+        std::for_each(cbegin(_stream_type_list), cend(_stream_type_list),
+            [&writers] (uint8_t st) {
+                writers.emplace_back(st);
+            });
 
+        // Read packets from TS stream loop
         PacketParser parser{};
-        for (PacketBuffer buffer{}; ifs >> buffer; )
+        PacketProcessor processor{};
+        for (PacketBuffer buffer{}; _ifs >> buffer; )
         {
             try
             {
+                // Parse packet
                 parser.parse(buffer);
 
-                if (_stats)
+                // Process parsed packet
+                processor.process(parser.get_packet());
+
+                // Write streams to output files
+                PID pid = parser.get_packet().get_PID();
+                if (PES_Data::get_instance().has_PES_data(pid))
                 {
-                    _stats->collect(parser.get_packet());
+                    std::for_each(begin(writers), end(writers),
+                        [&pid](FileWriter& fw) {
+                            if (fw.get_stream_type() == PSI_Tables::get_instance().get_stream_type(pid))
+                            {
+                                fw.write(PES_Data::get_instance().get_PES_data(pid));
+                            }
+                        });
+                }
+
+                // Collect stats
+                if (_collect_stats)
+                {
+                    Stats& stats = Stats::get_instance();
+                    stats.collect(parser.get_packet());
                 }
             }
             catch (const std::exception& err)
@@ -37,9 +84,11 @@ namespace TS
             }
         }
 
-        if (_stats)
+        // Print stats summary
+        if (_collect_stats)
         {
-            std::cout << "\n" << *_stats << "\n";
+            const Stats& stats = Stats::get_instance();
+            std::cout << "\n" << stats << "\n";
         }
     }
 

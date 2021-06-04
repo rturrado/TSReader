@@ -1,24 +1,28 @@
 #include "StreamType.h"
 
+#include <memory>
+
 namespace TS
 {
-    TStreamType_map stream_type_map{
-        {0xf, "ISO/IEC 13818-7 ADTS AAC (MPEG-2 lower bit-rate audio)"},
-        {0x1b, "ITU-T Rec. H.264 and ISO/IEC 14496-10 (lower bit-rate video)"}
-    };
-
-    TStreamType_map& get_stream_type_map()
+    /* static */
+    StreamTypeMap& StreamTypeMap::get_instance()
     {
-        return stream_type_map;
+        static StreamTypeMap instance;
+        return instance;
     }
 
-    bool is_valid_stream_type(uint8_t stream_type)
+    bool StreamTypeMap::is_valid_stream_type(stream_type t) const
     {
-        return stream_type_map.contains(stream_type);
+        return _type_to_description_map.contains(t);
     }
 
-    std::string get_stream_name(uint8_t stream_type)
+    std::string StreamTypeMap::get_stream_description(stream_type t) const
     {
-        return (stream_type_map.contains(stream_type) ? stream_type_map[stream_type] : "unknown");
+        return (_type_to_description_map.contains(t) ? _type_to_description_map.at(t) : "unknown");
+    }
+    
+    file_extension StreamTypeMap::get_file_extension(stream_type t) const
+    {
+        return (_type_to_file_extension_map.contains(t) ? _type_to_file_extension_map.at(t) : "unknown");
     }
 }

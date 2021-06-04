@@ -36,17 +36,26 @@ The code should use:
 
 - [X] Read elephants.ts and print out a summary of the TS packet PIDs (PID hex code and count).
 - [X] Parse adaptation field and adaptation extension.
+- [X] Parse payload data.<br/>
+    Parsing of PSI (Program Specific Information) should let us know the PIDs for audio and video packets.
+- [X] Write audio and video to output files.<br/>
+    It would be good to do this in a generic way, e.g., as a stage where different actions could be performed on the parsed TS packet.<br/>
+    `Read > Parse > (Write audio packet to audio file or video packet to video file _and/or_ Do some statistics... )`
 
 ## TODO
 
-- [ ] Parse payload data.<br/>
-    Parsing of PSI (Program Specific Information) should let us know the PIDs for audio and video packets.
-- [ ] Write audio and video to output files.<br/>
-    It would be good to do this in a generic way, e.g., as a stage where different actions could be performed on the parsed TS packet.<br/>
-    `Read > Parse > (Write audio packet to audio file or video packet to video file _and/or_ Do some statistics... )`
+- [ ] Revisit the PacketBuffer implementation: performance.
+  - [ ] Minimize the copy of vectors of bytes.
+  - [ ] Reimplement read operation as a get view returning a span?
+- [ ] Revisit the PacketParser implementation: code more clear and elegant.
+  - [ ] Encapsulate basic repetitive operations (e.g. read from buffer and create bitset)
+  - [ ] Simplify complex functions.
+- [ ] Reimplement the FileReader as a pipeline of stages (reading, parsing, processing, printing stats...)?
 
 ## Usage
 
 ### Windows
 
-`ts_reader.exe <TS FILE PATH>`, where `<TS FILE PATH>` is the path to the TS file. It can be absolute or relative to the `ts_reader.exe` location.
+`ts_reader.exe <TS FILE PATH> [-e|--extract <STREAM TYPE LIST>] [-s|--stats]`, where:<br/>
+- `<TS FILE PATH>` is the path to the TS file. It can be absolute or relative to the `ts_reader.exe` location, and
+- `<STREAM TYPE LIST>` is the stream type (e.g. 0xf or 017 or 15 for audio).

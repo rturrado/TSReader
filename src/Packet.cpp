@@ -1,27 +1,28 @@
 #include "Packet.h"
-#include "Tables.h"
+#include "PSI_Tables.h"
 
 #include <iostream>
 
 namespace TS
 {
-    // ****
-    // TODO: DO NOT use global variables?
-    // ****
-
     // NIT PID is set to 0x10 by default
     // However, if PAT table associates program 0 with a different PID, we can update the NIT PID to that new value
 
-    uint16_t NIT_PID{ default_NIT_PID };
-
-    uint16_t get_NIT_PID()
+    /* static */
+    NIT_PID& NIT_PID::get_instance()
     {
-        return NIT_PID;
+        static NIT_PID instance;
+        return instance;
     }
 
-    void set_NIT_PID(uint16_t value)
+    uint16_t NIT_PID::get_NIT_PID()
     {
-        NIT_PID = value;
+        return _value;
+    }
+
+    void NIT_PID::set_NIT_PID(uint16_t value)
+    {
+        _value = value;
     }
 
 
@@ -145,28 +146,16 @@ namespace TS
 
 
     // TableHeader
+    bool TableHeader::has_syntax_section() const { return section_length != 0; }
 
-    bool TableHeader::has_syntax_section() const
-    {
-        return section_length != 0;
-    }
-
-
+    // Payload data
+    bool PayloadData::has_PES_data() const { return PES_data.has_value(); }
+    const std::vector<uint8_t>& PayloadData::get_PES_data() const { return PES_data.value(); }
 
     // Packet
-
-    bool Packet::get_payload_unit_start_indicator() const
-    {
-        return header.payload_unit_start_indicator;
-    }
-    uint16_t Packet::get_PID() const
-    {
-        return header.PID;
-    }
-    uint8_t Packet::get_continuity_counter() const
-    {
-        return header.continuity_counter;
-    }
+    bool Packet::get_payload_unit_start_indicator() const { return header.payload_unit_start_indicator; }
+    uint16_t Packet::get_PID() const { return header.PID; }
+    uint8_t Packet::get_continuity_counter() const { return header.continuity_counter; }
 
     bool Packet::has_adaptation_field() const
     {
@@ -179,8 +168,8 @@ namespace TS
 
     bool Packet::payload_contains_PAT_table() const { return header.PID == PAT_PID; }
     bool Packet::payload_contains_CAT_table() const { return header.PID == CAT_PID; }
-    bool Packet::payload_contains_NIT_table() const { return header.PID == get_NIT_PID(); }
-    bool Packet::payload_contains_PMT_table() const { return get_PAT_map().contains(header.PID); }
+    bool Packet::payload_contains_NIT_table() const { return header.PID == NIT_PID::get_instance().get_NIT_PID(); }
+    bool Packet::payload_contains_PMT_table() const { return PSI_Tables::get_instance().is_PMT_PID(header.PID); }
     bool Packet::payload_contains_PSI() const
     {
         return payload_contains_PAT_table()
