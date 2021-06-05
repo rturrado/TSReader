@@ -81,7 +81,6 @@ namespace TS
     class NIT_PID
     {
     public:
-        NIT_PID() = default;
         NIT_PID(const NIT_PID&) = delete;
         NIT_PID(NIT_PID&) = delete;
         NIT_PID& operator=(const NIT_PID&) = delete;
@@ -92,6 +91,8 @@ namespace TS
         uint16_t get_NIT_PID();
         void set_NIT_PID(uint16_t value);
     private:
+        NIT_PID() {}
+
         uint16_t _value{ default_NIT_PID };
     };
 

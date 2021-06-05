@@ -362,3 +362,5 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /doc
+/ts_stream_0xf.aac
+/ts_stream_0x1b.mp4

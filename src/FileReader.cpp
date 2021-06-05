@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <vector>
 
 namespace TS
@@ -37,10 +38,10 @@ namespace TS
     void FileReader::start()
     {
         // Initialize writers
-        std::vector<FileWriter> writers{};
+        std::vector<std::shared_ptr<FileWriter>> writers{};
         std::for_each(cbegin(_stream_type_list), cend(_stream_type_list),
             [&writers] (uint8_t st) {
-                writers.emplace_back(st);
+                writers.push_back(std::make_unique<FileWriter>(st));
             });
 
         // Read packets from TS stream loop
@@ -60,11 +61,11 @@ namespace TS
                 PID pid = parser.get_packet().get_PID();
                 if (PES_Data::get_instance().has_PES_data(pid))
                 {
-                    std::for_each(begin(writers), end(writers),
-                        [&pid](FileWriter& fw) {
-                            if (fw.get_stream_type() == PSI_Tables::get_instance().get_stream_type(pid))
+                    std::for_each(cbegin(writers), cend(writers),
+                        [&pid](std::shared_ptr<FileWriter> fw_sptr) {
+                            if (fw_sptr->get_stream_type() == PSI_Tables::get_instance().get_stream_type(pid))
                             {
-                                fw.write(PES_Data::get_instance().get_PES_data(pid));
+                                fw_sptr->write(PES_Data::get_instance().get_PES_data(pid));
                             }
                         });
                 }

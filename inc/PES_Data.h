@@ -17,7 +17,6 @@ namespace TS
     class PES_Data
     {
     public:
-        PES_Data() = default;
         PES_Data(const PES_Data&) = delete;
         PES_Data(PES_Data&) = delete;
         PES_Data& operator=(const PES_Data&) = delete;
@@ -29,6 +28,8 @@ namespace TS
         TPES_data get_PES_data(PID p) const;
         void set_PES_data(PID p, TPES_data& data);
     private:
+        PES_Data() {}
+
         TPES_map PES_map;
     };
 }

@@ -17,7 +17,6 @@ namespace TS
     class PSI_Tables
     {
     public:
-        PSI_Tables() = default;
         PSI_Tables(const PSI_Tables&) = delete;
         PSI_Tables(PSI_Tables&) = delete;
         PSI_Tables& operator=(const PSI_Tables&) = delete;
@@ -32,6 +31,8 @@ namespace TS
         bool is_PES_PID(PID p) const;
         stream_type get_stream_type(PID p) const;
     private:
+        PSI_Tables() {}
+
         TPAT_map PAT_map{};
         TPMT_map PMT_map{};
     };

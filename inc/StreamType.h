@@ -27,7 +27,7 @@ namespace TS
         file_extension get_file_extension(stream_type t) const;
 
     private:
-        StreamTypeMap() {};
+        StreamTypeMap() {}
 
         type_to_description_map_type _type_to_description_map{
             {0xf, "ISO/IEC 13818-7 ADTS AAC (MPEG-2 lower bit-rate audio)"},

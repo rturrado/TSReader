@@ -19,7 +19,7 @@ namespace TS
         void collect(const Packet& packet);
         friend std::ostream& operator<<(std::ostream& os, const Stats& stats);
     private:
-        Stats() {};
+        Stats() {}
 
         std::multiset<uint16_t> _pids;
     };

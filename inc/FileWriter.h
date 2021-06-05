@@ -12,11 +12,6 @@ namespace TS
     {
     public:
         explicit FileWriter(stream_type st) noexcept;
-        FileWriter() = default;
-        FileWriter(const FileWriter&) = default;
-        FileWriter(FileWriter&&) = default;
-        FileWriter& operator=(const FileWriter&) = default;
-        FileWriter& operator=(FileWriter&&) = default;
         ~FileWriter();
 
         stream_type get_stream_type() const;
