@@ -1,7 +1,7 @@
 #ifndef __TS_EXCEPTION_H__
 #define __TS_EXCEPTION_H__
 
-#include "Packet.h"
+#include "Packet.hpp"
 
 #include <exception>
 #include <filesystem>

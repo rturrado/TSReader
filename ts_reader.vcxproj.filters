@@ -50,37 +50,37 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="inc\FileReader.h">
+    <ClInclude Include="inc\FileReader.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\Packet.h">
+    <ClInclude Include="inc\Packet.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\PacketBuffer.h">
+    <ClInclude Include="inc\PacketBuffer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\PacketParser.h">
+    <ClInclude Include="inc\PacketParser.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\Exception.h">
+    <ClInclude Include="inc\Exception.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\Stats.h">
+    <ClInclude Include="inc\Stats.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\PSI_Tables.h">
+    <ClInclude Include="inc\PSI_Tables.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\StreamType.h">
+    <ClInclude Include="inc\StreamType.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\PacketProcessor.h">
+    <ClInclude Include="inc\PacketProcessor.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\FileWriter.h">
+    <ClInclude Include="inc\FileWriter.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\PES_Data.h">
+    <ClInclude Include="inc\PES_Data.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

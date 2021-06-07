@@ -1,7 +1,7 @@
 #ifndef __PACKET_PROCESSOR_H__
 #define __PACKET_PROCESSOR_H__
 
-#include "Packet.h"
+#include "Packet.hpp"
 
 namespace TS
 {

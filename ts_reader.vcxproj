@@ -164,17 +164,17 @@
     <ClCompile Include="src\PSI_Tables.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="inc\Exception.h" />
-    <ClInclude Include="inc\FileWriter.h" />
-    <ClInclude Include="inc\PacketParser.h" />
-    <ClInclude Include="inc\Packet.h" />
-    <ClInclude Include="inc\PacketBuffer.h" />
-    <ClInclude Include="inc\FileReader.h" />
-    <ClInclude Include="inc\PacketProcessor.h" />
-    <ClInclude Include="inc\PES_Data.h" />
-    <ClInclude Include="inc\Stats.h" />
-    <ClInclude Include="inc\StreamType.h" />
-    <ClInclude Include="inc\PSI_Tables.h" />
+    <ClInclude Include="inc\Exception.hpp" />
+    <ClInclude Include="inc\FileWriter.hpp" />
+    <ClInclude Include="inc\PacketParser.hpp" />
+    <ClInclude Include="inc\Packet.hpp" />
+    <ClInclude Include="inc\PacketBuffer.hpp" />
+    <ClInclude Include="inc\FileReader.hpp" />
+    <ClInclude Include="inc\PacketProcessor.hpp" />
+    <ClInclude Include="inc\PES_Data.hpp" />
+    <ClInclude Include="inc\Stats.hpp" />
+    <ClInclude Include="inc\StreamType.hpp" />
+    <ClInclude Include="inc\PSI_Tables.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

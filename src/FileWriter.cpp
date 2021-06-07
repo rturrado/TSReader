@@ -1,5 +1,5 @@
-#include "FileWriter.h"
-#include "StreamType.h"
+#include "FileWriter.hpp"
+#include "StreamType.hpp"
 
 #include <filesystem>
 #include <fstream>

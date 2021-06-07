@@ -1,8 +1,8 @@
 #ifndef __TS_PACKET_PARSER_H__
 #define __TS_PACKET_PARSER_H__
 
-#include "Packet.h"
-#include "PacketBuffer.h"
+#include "Packet.hpp"
+#include "PacketBuffer.hpp"
 
 #include <vector>
 

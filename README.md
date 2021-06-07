@@ -23,34 +23,44 @@ The code should use:
 - Command line parsing errors print the usage in standard output and exit.
 - Runtime errors such as parsing errors print the error message in standard output and exit.
 - `main` parses the command line, creates a `FileReader` to read the TS file, and proceeds to read it.
-- `FileReader` opens the TS file and, for each TS packet, reads it into a `PacketBuffer` and ask `PacketParser` to parse it.
-- `PacketParser` parses the TS packet header and, if present, the adaptation field and payload data. In order to do that, it reads byte chunks from `PacketBuffer`.
-- `PacketBuffer` lets byte chunks to be read in big-endian, which is needed for the header.
+- `FileReader` opens the TS file and, for each TS packet:
+  - reads it into a `PacketBuffer`,
+  - asks `PacketParser` to parse it,
+  - asks `PacketProcessor` to do some processing on the parsed packet, and, finally,
+  - performs some post processing: e.g. collect stats or write some streams out to file.
+- `PacketParser` parses the TS packet header and, if present, the adaptation field and payload data.<br/>
+    In order to do that, it reads byte chunks from `PacketBuffer`.<br/>
+    It also does some error checking: stuffing bytes, reserved and unused bits, CRC32...
+- `PacketBuffer` lets byte chunks to be read in big-endian, which is needed for all the TS headers.
+- `PacketProcessor` basically:
+  - builds the PSI tables (PAT and PMT) for packets containing PSI information, and
+  - saves the PES data for packets containing PES payloads.
 
 ## Implementation
 
-- `Packet`, `Header`, `AdaptationField`, and `AdaptationExtension` are structs.
-- Field masks and byte chunks are `boost::dynamic_bitset`. This way we can easily perform binary operations.
+- `Packet`, `Header`, `AdaptationField`, `AdaptationExtension` and so on are structs.
+- Field masks and byte chunks are `boost::dynamic_bitset`s. This way we can easily perform binary operations.
 
 ## DONE
 
-- [X] Read elephants.ts and print out a summary of the TS packet PIDs (PID hex code and count).
-- [X] Parse adaptation field and adaptation extension.
-- [X] Parse payload data.<br/>
-    Parsing of PSI (Program Specific Information) should let us know the PIDs for audio and video packets.
+- [X] Read elephants.ts and print out a summary of the TS packet PIDs (PID hex code, count, stream type, and stream description).
+- [X] Parse adaptation field, adaptation extension, and payload data.<br/>
+    Parsing of PSI (Program Specific Information) lets us know the PIDs for audio and video packets.
 - [X] Write audio and video to output files.<br/>
-    It would be good to do this in a generic way, e.g., as a stage where different actions could be performed on the parsed TS packet.<br/>
-    `Read > Parse > (Write audio packet to audio file or video packet to video file _and/or_ Do some statistics... )`
+    This is done as a post packet processing stage, together with the gathering of stats.<br/>
+    These actions are optional, and requested by the user through command line parameters.
 
 ## TODO
 
-- [ ] Revisit the PacketBuffer implementation: performance.
-  - [ ] Minimize the copy of vectors of bytes.
-  - [ ] Reimplement read operation as a get view returning a span?
+- [ ] Create a Makefile.
 - [ ] Revisit the PacketParser implementation: code more clear and elegant.
   - [ ] Encapsulate basic repetitive operations (e.g. read from buffer and create bitset)
   - [ ] Simplify complex functions.
-- [ ] Reimplement the FileReader as a pipeline of stages (reading, parsing, processing, printing stats...)?
+- [ ] Revisit the PacketBuffer implementation: performance.
+  - [ ] Minimize the copy of vectors of bytes.
+  - [ ] Reimplement read operation as a get view returning a span?
+- [ ] New branch: reimplement the FileReader as a pipeline of stages (reading, parsing, processing, printing stats...)
+- [ ] New branch: reimplement using modules.
 
 ## Usage
 
@@ -58,4 +68,5 @@ The code should use:
 
 `ts_reader.exe <TS FILE PATH> [-e|--extract <STREAM TYPE LIST>] [-s|--stats]`, where:<br/>
 - `<TS FILE PATH>` is the path to the TS file. It can be absolute or relative to the `ts_reader.exe` location, and
-- `<STREAM TYPE LIST>` is the stream type (e.g. 0xf or 017 or 15 for audio).
+- `<STREAM TYPE LIST>` is a comma separated list of stream types.<br/>
+    It supports hexadecimal, decimal or octal notation (e.g. 0xf, 15 or 017 for audio).

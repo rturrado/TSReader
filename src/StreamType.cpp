@@ -1,4 +1,4 @@
-#include "StreamType.h"
+#include "StreamType.hpp"
 
 #include <memory>
 

@@ -1,6 +1,6 @@
-#include "Exception.h"
-#include "FileReader.h"
-#include "StreamType.h"
+#include "Exception.hpp"
+#include "FileReader.hpp"
+#include "StreamType.hpp"
 
 #include <algorithm>
 #include <chrono>

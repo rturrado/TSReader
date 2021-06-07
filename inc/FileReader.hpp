@@ -1,7 +1,7 @@
 #ifndef __TS_READER_H__
 #define __TS_READER_H__
 
-#include "Stats.h"
+#include "Stats.hpp"
 
 #include <exception>
 #include <filesystem>

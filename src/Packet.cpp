@@ -1,5 +1,5 @@
-#include "Packet.h"
-#include "PSI_Tables.h"
+#include "Packet.hpp"
+#include "PSI_Tables.hpp"
 
 #include <iostream>
 

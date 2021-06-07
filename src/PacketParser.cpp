@@ -1,7 +1,7 @@
-#include "Exception.h"
-#include "Packet.h"
-#include "PacketParser.h"
-#include "PSI_Tables.h"
+#include "Exception.hpp"
+#include "Packet.hpp"
+#include "PacketParser.hpp"
+#include "PSI_Tables.hpp"
 
 #include <algorithm>
 #include <boost/crc.hpp>
@@ -11,7 +11,8 @@
 
 namespace TS
 {
-    /* static */ size_t PacketParser::_packet_index{ 0 };
+    /* static */
+    size_t PacketParser::_packet_index{ 0 };
 
     template <typename ReturnType>
     ReturnType read_field(const boost::dynamic_bitset<uint8_t>& bs, const boost::dynamic_bitset<uint8_t>& mask_bs)
@@ -61,15 +62,11 @@ namespace TS
         Header& hdr = _packet.header;
 
         hdr.sync_byte = read_field<uint8_t>(header_bs, hdr_sync_byte_mask_bs);
-        if (hdr.sync_byte != sync_byte_valid_value)
-        {
-            throw InvalidSyncByte{};
-        }
         hdr.transport_error_indicator = header_bs.test(hdr_transport_error_indicator_mask_bs.find_first());
-        if (hdr.transport_error_indicator)
-        {
-            throw TransportError{};
-        }
+
+        if (hdr.sync_byte != sync_byte_valid_value) { throw InvalidSyncByte{}; }
+        if (hdr.transport_error_indicator) { throw TransportError{}; }
+
         hdr.payload_unit_start_indicator = header_bs.test(hdr_payload_unit_start_indicator_mask_bs.find_first());
         hdr.transport_priority = header_bs.test(hdr_transport_priority_mask_bs.find_first());
         hdr.PID = read_field<uint16_t>(header_bs, hdr_PID_mask_bs);
@@ -339,34 +336,16 @@ namespace TS
                 || _packet.payload_contains_PMT_table();
 
             th.section_syntax_indicator = th_bs.test(th_section_syntax_indicator_mask_bs.find_first());
-            if (th.section_syntax_indicator != payload_contains_PAT_CAT_or_PMT_table)
-            {
-                throw InvalidSectionSyntaxIndicator{};
-            }
-
             th.private_bit = th_bs.test(th_private_bit_mask_bs.find_first());
-            if (th.private_bit == payload_contains_PAT_CAT_or_PMT_table)
-            {
-                throw InvalidPrivateBit{};
-            }
-            if (not all_field_bits_set(th_bs, th_reserved_bits_mask_bs))
-            {
-                throw InvalidReservedBits{};
-            }
-            if (not all_field_bits_unset(th_bs, th_section_length_unused_bits_mask_bs))
-            {
-                throw InvalidUnusedBits{};
-            }
-
             th.section_length = read_field<uint16_t>(th_bs, th_section_length_mask_bs);
-            if (th.section_length > th_max_section_length)
-            {
-                throw InvalidSectionLength{};
-            }
-            if (th.section_length > p_buffer.size_not_read())
-            {
-                throw Unimplemented{ "PSI table spanning across different packets" };
-            }
+
+            if (th.section_syntax_indicator != payload_contains_PAT_CAT_or_PMT_table) { throw InvalidSectionSyntaxIndicator{}; }
+            if (th.private_bit == payload_contains_PAT_CAT_or_PMT_table) { throw InvalidPrivateBit{}; }
+            if (not all_field_bits_set(th_bs, th_reserved_bits_mask_bs)) { throw InvalidReservedBits{}; }
+            if (not all_field_bits_unset(th_bs, th_section_length_unused_bits_mask_bs)) { throw InvalidUnusedBits{}; }
+
+            if (th.section_length > th_max_section_length) { throw InvalidSectionLength{}; }
+            if (th.section_length > p_buffer.size_not_read()) { throw Unimplemented{ "PSI table spanning across different packets" }; }
             
             if (th.has_syntax_section())
             {
@@ -404,31 +383,17 @@ namespace TS
 
         ts.table_id_extension = read_field<uint16_t>(ts_bs, tss_table_id_extension_mask_bs);
 
-        if (not all_field_bits_set(ts_bs, tss_reserved_bits_mask_bs))
-        {
-            throw InvalidReservedBits{};
-        }
+        if (not all_field_bits_set(ts_bs, tss_reserved_bits_mask_bs)) { throw InvalidReservedBits{}; }
+
         ts.version_number = read_field<uint8_t>(ts_bs, tss_version_number_mask_bs);
         ts.current_next_indicator = ts_bs.test(tss_current_next_indicator_mask_bs.find_first());
         ts.section_number = read_field<uint8_t>(ts_bs, tss_section_number_mask_bs);
         ts.last_section_number = read_field<uint8_t>(ts_bs, tss_last_section_number_mask_bs);
 
-        if (_packet.payload_contains_PAT_table())
-        {
-            parse_PAT_table(p_buffer);
-        }
-        else if (_packet.payload_contains_CAT_table())
-        {
-            throw Unimplemented{ "parsing of CAT table" };
-        }
-        else if (_packet.payload_contains_NIT_table())
-        {
-            throw Unimplemented{ "parsing of NIT table" };
-        }
-        else if (_packet.payload_contains_PMT_table())
-        {
-            parse_PMT_table(p_buffer);
-        }
+        if (_packet.payload_contains_PAT_table()) { parse_PAT_table(p_buffer); }
+        else if (_packet.payload_contains_CAT_table()) { throw Unimplemented{ "parsing of CAT table" }; }
+        else if (_packet.payload_contains_NIT_table()) { throw Unimplemented{ "parsing of NIT table" }; }
+        else if (_packet.payload_contains_PMT_table()) { parse_PMT_table(p_buffer); }
 
         ts_buffer = p_buffer.read<true>(tss_crc32_size);
         ts.crc32 = *(reinterpret_cast<uint32_t*>(&ts_buffer[0]));
@@ -442,7 +407,6 @@ namespace TS
         const uint16_t table_data_size = th.section_length
             - table_syntax_section_size
             - tss_crc32_size;
-
         if (table_data_size == 0)
         {
             return;
@@ -469,11 +433,9 @@ namespace TS
             boost::dynamic_bitset<uint8_t> td_bs{ PAT_table_data_program_size * 8, 0x0 };
             from_block_range(it, it + PAT_table_data_program_size, td_bs);
 
+            if (not all_field_bits_set(td_bs, PAT_table_data_reserved_bits_mask_bs)) { throw InvalidReservedBits{}; }
+
             uint16_t program_num = read_field<uint16_t>(td_bs, PAT_table_data_table_id_extension_mask_bs);
-            if (not all_field_bits_set(td_bs, PAT_table_data_reserved_bits_mask_bs))
-            {
-                throw InvalidReservedBits{};
-            }
             uint16_t program_map_PID = read_field<uint16_t>(td_bs, PAT_table_data_program_map_PID_mask_bs);
 
             patt.data.push_back({ program_num, program_map_PID });
@@ -497,24 +459,14 @@ namespace TS
         TableSyntax& ts = *th.table_syntax;
         PMT_Table& pmtt = std::get<PMT_Table>(ts.table_data);
 
-        if (not all_field_bits_set(td_bs, PMT_reserved_bits_mask_bs))
-        {
-            throw InvalidReservedBits{};
-        }
+        if (not all_field_bits_set(td_bs, PMT_reserved_bits_mask_bs)) { throw InvalidReservedBits{}; }
+        if (not all_field_bits_set(td_bs, PMT_reserved_bits_2_mask_bs)) { throw InvalidReservedBits{}; }
+        if (not all_field_bits_unset(td_bs, PMT_program_info_length_unused_bits_mask_bs)) { throw InvalidUnusedBits{}; }
+
         pmtt.PCR_PID = read_field<uint16_t>(td_bs, PMT_reserved_bits_mask_bs);
-        if (not all_field_bits_set(td_bs, PMT_reserved_bits_2_mask_bs))
-        {
-            throw InvalidReservedBits{};
-        }
-        if (not all_field_bits_unset(td_bs, PMT_program_info_length_unused_bits_mask_bs))
-        {
-            throw InvalidUnusedBits{};
-        }
         pmtt.program_info_length = read_field<uint16_t>(td_bs, PMT_program_info_length_bs);
-        if (pmtt.program_info_length != 0)
-        {
-            throw Unimplemented{ "parsing of PTM program descriptors" };
-        }
+
+        if (pmtt.program_info_length != 0) { throw Unimplemented{ "parsing of PTM program descriptors" }; }
 
         uint16_t elementary_stream_specific_data_size = th.section_length
             - table_syntax_section_size
@@ -547,21 +499,14 @@ namespace TS
             // Set fields
             ESSD essd{};
 
+            if (not all_field_bits_set(essd_bs, ESSD_reserved_bits_mask_bs)) { throw InvalidReservedBits{}; }
+            if (not all_field_bits_set(essd_bs, ESSD_reserved_bits_2_mask_bs)) { throw InvalidReservedBits{}; }
+            if (not all_field_bits_unset(essd_bs, ESSD_info_length_unused_bits_mask_bs)) { throw InvalidUnusedBits{}; }
+
             essd.stream_type = read_field<uint8_t>(essd_bs, ESSD_stream_type_mask_bs);
-            if (not all_field_bits_set(essd_bs, ESSD_reserved_bits_mask_bs))
-            {
-                throw InvalidReservedBits{};
-            }
             essd.elementary_PID = read_field<uint16_t>(essd_bs, ESSD_elementary_PID_mask_bs);
-            if (not all_field_bits_set(essd_bs, ESSD_reserved_bits_2_mask_bs))
-            {
-                throw InvalidReservedBits{};
-            }
-            if (not all_field_bits_unset(essd_bs, ESSD_info_length_unused_bits_mask_bs))
-            {
-                throw InvalidUnusedBits{};
-            }
             essd.info_length = read_field<uint16_t>(essd_bs, ESSD_info_length_mask_bs);
+
             if (essd.info_length != 0)
             {
                 essd.descriptors = parse_descriptors(p_buffer, essd.info_length);
@@ -591,6 +536,7 @@ namespace TS
 
             descriptor.tag = read_field<uint8_t>(dsc_bs, dsc_tag_mask_bs);
             descriptor.length = read_field<uint8_t>(dsc_bs, dsc_length_mask_bs);
+
             if (descriptor.length != 0)
             {
                 descriptor.data = p_buffer.read<true>(descriptor.length);

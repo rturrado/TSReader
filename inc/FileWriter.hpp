@@ -1,8 +1,8 @@
 #ifndef __FILE_WRITER_H__
 #define __FILE_WRITER_H__
 
-#include "StreamType.h"
-#include "PES_Data.h"
+#include "StreamType.hpp"
+#include "PES_Data.hpp"
 
 #include <fstream>
 

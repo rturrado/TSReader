@@ -1,7 +1,7 @@
-#include "Packet.h"
-#include "Stats.h"
-#include "StreamType.h"
-#include "PSI_Tables.h"
+#include "Packet.hpp"
+#include "Stats.hpp"
+#include "StreamType.hpp"
+#include "PSI_Tables.hpp"
 
 #include <iostream>
 #include <sstream>

@@ -1,11 +1,11 @@
-#include "Exception.h"
-#include "FileReader.h"
-#include "FileWriter.h"
-#include "PacketBuffer.h"
-#include "PacketParser.h"
-#include "PacketProcessor.h"
-#include "PES_Data.h"
-#include "PSI_Tables.h"
+#include "Exception.hpp"
+#include "FileReader.hpp"
+#include "FileWriter.hpp"
+#include "PacketBuffer.hpp"
+#include "PacketParser.hpp"
+#include "PacketProcessor.hpp"
+#include "PES_Data.hpp"
+#include "PSI_Tables.hpp"
 
 #include <array>
 #include <filesystem>

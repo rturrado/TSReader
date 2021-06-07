@@ -1,8 +1,8 @@
-#include "Exception.h"
-#include "Packet.h"
-#include "PacketProcessor.h"
-#include "PES_Data.h"
-#include "PSI_Tables.h"
+#include "Exception.hpp"
+#include "Packet.hpp"
+#include "PacketProcessor.hpp"
+#include "PES_Data.hpp"
+#include "PSI_Tables.hpp"
 
 #include <algorithm>
 

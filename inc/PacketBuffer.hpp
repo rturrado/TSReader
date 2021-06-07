@@ -1,7 +1,7 @@
 #ifndef __TS_PACKET_BUFFER_H__
 #define __TS_PACKET_BUFFER_H__
 
-#include "Packet.h"
+#include "Packet.hpp"
 
 #include <array>
 #include <bitset>

@@ -1,5 +1,5 @@
-#include "Exception.h"
-#include "PacketBuffer.h"
+#include "Exception.hpp"
+#include "PacketBuffer.hpp"
 
 #include <algorithm>
 #include <bitset>
