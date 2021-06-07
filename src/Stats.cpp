@@ -31,7 +31,7 @@ namespace TS
             PID pid{ *it };
             if (tables.is_PES_PID(pid))
             {
-                uint8_t stream_type{ tables.get_stream_type(pid) };
+                uint8_t stream_type{ tables.get_PES_stream_type(pid) };
 
                 std::ostringstream oss{};
                 oss << "{" << "0x" << std::hex << static_cast<int16_t>(stream_type);

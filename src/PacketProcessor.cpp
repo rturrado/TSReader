@@ -17,8 +17,7 @@ namespace TS
                 if (packet.payload_contains_PAT_table())
                 {
                     // ****
-                    // TODO: should we consider version number to update or not PAT_map?
-                    //       Should we store table data in PAT_map if current/next indicator is true,
+                    // TODO: should we store table data in PAT_map if current/next indicator is true,
                     //       and store table data in a buffer if current/next indicator is false?
                     // ****
                     process_PAT_payload(packet);
@@ -38,6 +37,12 @@ namespace TS
     void PacketProcessor::process_PAT_payload(const Packet& packet)
     {
         const TableSyntax& ts = *packet.payload_data->table_header->table_syntax;
+
+        if (not PSI_Tables::get_instance().PAT_needs_update(ts.version_number))
+        {
+            return;
+        }
+
         const PAT_Table& patt = std::get<PAT_Table>(ts.table_data);
 
         std::for_each(cbegin(patt.data), cend(patt.data), [](const auto& program) {
@@ -58,11 +63,18 @@ namespace TS
     void PacketProcessor::process_PMT_payload(const Packet& packet)
     {
         const TableSyntax& ts = *packet.payload_data->table_header->table_syntax;
-        const PMT_Table& pmtt = std::get<PMT_Table>(ts.table_data);
+        auto program_num{ PSI_Tables::get_instance().get_PAT_program_number(packet.get_PID()) };
+
+        if (not PSI_Tables::get_instance().PMT_needs_update(program_num, ts.version_number))
+        {
+            return;
+        }
 
         // Update PMT table
-        std::for_each(cbegin(*pmtt.ESSD_info_data), cend(*pmtt.ESSD_info_data), [](const auto& essd) {
-            PSI_Tables::get_instance().set_PMT_stream_type(essd.elementary_PID, essd.stream_type);
+        const PMT_Table& pmtt = std::get<PMT_Table>(ts.table_data);
+
+        std::for_each(cbegin(*pmtt.ESSD_info_data), cend(*pmtt.ESSD_info_data), [&program_num](const auto& essd) {
+            PSI_Tables::get_instance().set_PMT_stream_type(program_num, essd.elementary_PID, essd.stream_type);
             });
     }
 

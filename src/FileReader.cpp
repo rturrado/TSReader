@@ -63,7 +63,7 @@ namespace TS
                 {
                     std::for_each(cbegin(writers), cend(writers),
                         [&pid](std::shared_ptr<FileWriter> fw_sptr) {
-                            if (fw_sptr->get_stream_type() == PSI_Tables::get_instance().get_stream_type(pid))
+                            if (fw_sptr->get_stream_type() == PSI_Tables::get_instance().get_PES_stream_type(pid))
                             {
                                 fw_sptr->write(PES_Data::get_instance().get_PES_data(pid));
                             }

@@ -134,6 +134,23 @@ namespace TS
 
 
 
+    // PSI tables
+
+    struct Duplicated_PES_PID : public std::exception
+    {
+        Duplicated_PES_PID() : std::exception{ "duplicated PES PID" } {};
+    };
+    struct Duplicated_PMT_PID : public std::exception
+    {
+        Duplicated_PMT_PID() : std::exception{ "duplicated PMT PID" } {};
+    };
+    struct Unknown_PMT_Program_Number : public std::exception
+    {
+        Unknown_PMT_Program_Number() : std::exception{ "unknown PMT program number" } {};
+    };
+
+
+
     // Other
 
     class Unimplemented : public std::exception
