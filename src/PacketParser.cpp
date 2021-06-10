@@ -51,6 +51,19 @@ namespace TS
     /* static */
     size_t PacketParser::_packet_index{ 0 };
 
+    template <uint8_t buffer_size>
+    auto from_packet_buffer(PacketBuffer& p_buffer)
+    {
+        // Read from packet buffer into byte buffer
+        auto buffer = p_buffer.read(buffer_size);
+
+        // Create bitset from buffer
+        boost::dynamic_bitset<uint8_t> ret_bs{ buffer_size * 8 };
+        from_block_range(cbegin(buffer), cend(buffer), ret_bs);
+
+        return ret_bs;
+    }
+
     template <typename ReturnType>
     ReturnType read_field(const boost::dynamic_bitset<uint8_t>& bs, const boost::dynamic_bitset<uint8_t>& mask_bs)
     {
@@ -89,12 +102,8 @@ namespace TS
 
     void PacketParser::parse_header(PacketBuffer& p_buffer)
     {
-        // Read from buffer
-        auto header_buffer = p_buffer.read(header_size);
-
-        // Create bitset from buffer
-        boost::dynamic_bitset<uint8_t> header_bs{ header_size * 8 };
-        from_block_range(cbegin(header_buffer), cend(header_buffer), header_bs);
+        // Create bitset from packet buffer
+        auto header_bs = from_packet_buffer<header_size>(p_buffer);
 
         // Set fields
         Header& hdr = _packet.header;
@@ -123,7 +132,7 @@ namespace TS
         // Set fields
         AdaptationField& af = *_packet.adaptation_field;
 
-        af.length = af_buffer[0];
+        af.length = *cbegin(af_buffer);
 
         if (af.length > 0)
         {
@@ -139,11 +148,8 @@ namespace TS
     {
         _packet.adaptation_field->flags = AdaptationFieldFlags{};
 
-        // Read from buffer
-        auto af_buffer = p_buffer.read(af_flags_size);
-
-        // Create bitset from buffer
-        boost::dynamic_bitset<uint8_t> af_bs{ 8, af_buffer[0] };
+        // Create bitset from packet buffer
+        auto af_bs = from_packet_buffer<af_flags_size>(p_buffer);
 
         // Set fields
         AdaptationField& af = *_packet.adaptation_field;
@@ -172,17 +178,13 @@ namespace TS
 
         if (aff.PCR_flag)
         {
-            auto pcr_buffer = p_buffer.read(afo_PCR_size);
-            afo.PCR = boost::dynamic_bitset<uint8_t>{ afo_PCR_size * 8, 0x0 };
-            from_block_range(cbegin(pcr_buffer), cbegin(pcr_buffer) + afo_PCR_size, *afo.PCR);
+            afo.PCR = from_packet_buffer<afo_PCR_size>(p_buffer);
             af_optional_size += afo_PCR_size;
         }
 
         if (aff.OPCR_flag)
         {
-            auto opcr_buffer = p_buffer.read(afo_OPCR_size);
-            afo.OPCR = boost::dynamic_bitset<uint8_t>{ afo_OPCR_size * 8, 0x0 };
-            from_block_range(cbegin(opcr_buffer), cbegin(opcr_buffer) + afo_OPCR_size, *afo.OPCR);
+            afo.OPCR = from_packet_buffer<afo_OPCR_size>(p_buffer);
             af_optional_size += afo_OPCR_size;
         }
 
@@ -214,7 +216,8 @@ namespace TS
             af_optional_size += afo.extension->length;
         }
 
-        if (auto af_stuffing_bytes_size = af.length - af_flags_size - af_optional_size; af_stuffing_bytes_size > 0)
+        if (auto af_stuffing_bytes_size = af.length - af_flags_size - af_optional_size;
+            af_stuffing_bytes_size > 0)
         {
             afo.stuffing_bytes = p_buffer.read(af_stuffing_bytes_size);
 
@@ -230,12 +233,8 @@ namespace TS
     {
         _packet.adaptation_field->optional->extension = AdaptationExtension{};
 
-        // Read from buffer
-        auto ae_buffer = p_buffer.read(adaptation_extension_header_size);
-
-        // Create bitset from buffer
-        boost::dynamic_bitset<uint8_t> ae_bs{ adaptation_extension_header_size * 8 };
-        from_block_range(cbegin(ae_buffer), cend(ae_buffer), ae_bs);
+        // Create bitset from packet buffer
+        auto ae_bs = from_packet_buffer<adaptation_extension_header_size>(p_buffer);
 
         AdaptationExtension& ae = *_packet.adaptation_field->optional->extension;
 
@@ -251,27 +250,21 @@ namespace TS
         // Set optional fields
         if (ae.legal_time_window_flag)
         {
-            auto ltw_buffer = p_buffer.read(aeo_LTW_field_size);
-            boost::dynamic_bitset<uint8_t> ltw_bs{ aeo_LTW_field_size * 8, 0x0 };
-            from_block_range(cbegin(ltw_buffer), cend(ltw_buffer), ltw_bs);
+            auto ltw_bs = from_packet_buffer<aeo_LTW_field_size>(p_buffer);
 
             ae.legal_time_window_valid_flag = ltw_bs.test(aeo_legal_time_window_valid_flag_mask_bs.find_first());
             ae.legal_time_window_offset = read_field<uint16_t>(ltw_bs, aeo_legal_time_window_offset_mask_bs);
         }
         if (ae.piecewise_rate_flag)
         {
-            auto piecewise_buffer = p_buffer.read(aeo_piecewise_field_size);
-            boost::dynamic_bitset<uint8_t> piecewise_bs{ aeo_piecewise_field_size * 8, 0x0 };
-            from_block_range(cbegin(piecewise_buffer), cend(piecewise_buffer), piecewise_bs);
+            auto piecewise_bs = from_packet_buffer<aeo_piecewise_field_size>(p_buffer);
 
             ae.piecewise_rate_reserved = read_field<uint8_t>(piecewise_bs, aeo_piecewise_rate_reserved_mask_bs);
             ae.piecewise_rate = read_field<uint32_t>(piecewise_bs, aeo_piecewise_rate_mask_bs);
         }
         if (ae.seamless_splice_flag)
         {
-            auto seamless_buffer = p_buffer.read(aeo_seamless_field_size);
-            boost::dynamic_bitset<uint8_t> seamless_bs{ aeo_seamless_field_size * 8, 0x0 };
-            from_block_range(cbegin(seamless_buffer), cend(seamless_buffer), seamless_bs);
+            auto seamless_bs = from_packet_buffer<aeo_seamless_field_size>(p_buffer);
 
             ae.seamless_splice_type = read_field<uint8_t>(seamless_bs, aeo_seamless_splice_type_mask_bs);
             ae.DTS_next_access_unit = read_field<uint64_t>(seamless_bs, aeo_DTS_next_access_unit_mask_bs);
@@ -295,7 +288,6 @@ namespace TS
 
     void PacketParser::parse_payload_data_as_PES(PacketBuffer& p_buffer)
     {
-        // PES payloads are read in little endian
         _packet.payload_data->PES_data = p_buffer.read(p_buffer.size_not_read());
     }
 
@@ -340,12 +332,8 @@ namespace TS
         // Save packet buffer start read position
         auto packet_buffer_start_pos = p_buffer.get_read_position();
 
-        // Read from buffer
-        auto th_buffer = p_buffer.read(table_header_size);
-
-        // Create bitset from buffer
-        boost::dynamic_bitset<uint8_t> th_bs{ table_header_size * 8, 0x0 };
-        from_block_range(cbegin(th_buffer), cend(th_buffer), th_bs);
+        // Create bitset from packet buffer
+        auto th_bs = from_packet_buffer<table_header_size>(p_buffer);
 
         // Set fields
         TableHeader& th = *_packet.payload_data->table_header;
@@ -408,8 +396,8 @@ namespace TS
         return false;
     }
 
-    bool PacketParser::check_and_parse_stuffing_bytes_section(uint8_t first_byte, uint8_t bytes_to_read,
-        PacketBuffer& p_buffer) const
+    bool PacketParser::check_and_parse_stuffing_bytes_section(
+        uint8_t first_byte, uint8_t bytes_to_read, PacketBuffer& p_buffer) const
     {
         if (first_byte == stuffing_byte)
         {
@@ -430,12 +418,8 @@ namespace TS
     {
         _packet.payload_data->table_header->table_syntax = TableSyntax{};
 
-        // Read from buffer
-        auto ts_buffer = p_buffer.read(table_syntax_section_size);
-
-        // Create bitset from buffer
-        boost::dynamic_bitset<uint8_t> ts_bs{ table_syntax_section_size * 8, 0x0 };
-        from_block_range(cbegin(ts_buffer), cend(ts_buffer), ts_bs);
+        // Create bitset from packet buffer
+        auto ts_bs = from_packet_buffer<table_syntax_section_size>(p_buffer);
 
         // Set fields
         TableSyntax& ts = *_packet.payload_data->table_header->table_syntax;
@@ -479,28 +463,19 @@ namespace TS
         // Create the PAT table
         _packet.payload_data->table_header->table_syntax->table_data = PAT_Table{};
 
-        // Read from buffer
-        auto td_buffer = p_buffer.read(static_cast<uint8_t>(table_data_size));
-
-        if (td_buffer.size() % PAT_table_data_program_size != 0)
-        {
-            throw InvalidPATTableDataSize{};
-        }
-
-        // Set fields
         TableSyntax& ts = *th.table_syntax;
         PAT_Table& patt = std::get<PAT_Table>(ts.table_data);
 
-        for (auto it = cbegin(td_buffer); it != cend(td_buffer); it += PAT_table_data_program_size)
+        for (auto i = 0; i < table_data_size; i += PAT_table_data_program_size)
         {
-            // Create bitset from buffer
-            boost::dynamic_bitset<uint8_t> td_bs{ PAT_table_data_program_size * 8, 0x0 };
-            from_block_range(it, it + PAT_table_data_program_size, td_bs);
+            // Create bitset from packet buffer
+            auto pat_entry_bs = from_packet_buffer<PAT_table_data_program_size>(p_buffer);
 
-            if (not all_field_bits_set(td_bs, PAT_table_data_reserved_bits_mask_bs)) { throw InvalidReservedBits{}; }
+            // Set fields
+            if (not all_field_bits_set(pat_entry_bs, PAT_table_data_reserved_bits_mask_bs)) { throw InvalidReservedBits{}; }
 
-            uint16_t program_num = read_field<uint16_t>(td_bs, PAT_table_data_table_id_extension_mask_bs);
-            uint16_t program_map_PID = read_field<uint16_t>(td_bs, PAT_table_data_program_map_PID_mask_bs);
+            uint16_t program_num = read_field<uint16_t>(pat_entry_bs, PAT_table_data_table_id_extension_mask_bs);
+            uint16_t program_map_PID = read_field<uint16_t>(pat_entry_bs, PAT_table_data_program_map_PID_mask_bs);
 
             patt.data.push_back({ program_num, program_map_PID });
         }
@@ -511,12 +486,8 @@ namespace TS
         // Create the PMT table
         _packet.payload_data->table_header->table_syntax->table_data = PMT_Table{};
 
-        // Read from buffer
-        auto td_buffer = p_buffer.read(static_cast<uint8_t>(PMT_table_data_header_size));
-
-        // Create bitset from buffer
-        boost::dynamic_bitset<uint8_t> td_bs{ PMT_table_data_header_size * 8, 0x0 };
-        from_block_range(cbegin(td_buffer), cend(td_buffer), td_bs);
+        // Create bitset from packet buffer
+        auto td_bs = from_packet_buffer<PMT_table_data_header_size>(p_buffer);
 
         // Set fields
         TableHeader& th = *_packet.payload_data->table_header;
@@ -545,12 +516,8 @@ namespace TS
 
     void PacketParser::parse_CRC32(PacketBuffer& p_buffer)
     {
-        // Read from buffer
-        auto crc32_buffer = p_buffer.read(tss_crc32_size);
-
-        // Create bitset from buffer
-        boost::dynamic_bitset<uint8_t> crc32_bs{ tss_crc32_size * 8, 0x0 };
-        from_block_range(cbegin(crc32_buffer), cend(crc32_buffer), crc32_bs);
+        // Create bitset from packet buffer
+        auto crc32_bs = from_packet_buffer<tss_crc32_size>(p_buffer);
 
         // Set fields
         TableSyntax& ts = *_packet.payload_data->table_header->table_syntax;
@@ -568,12 +535,8 @@ namespace TS
 
         while (elementary_stream_specific_data_size)
         {
-            // Read from buffer
-            auto essd_buffer = p_buffer.read(ESSD_header_size);
-
-            // Create bitset from buffer
-            boost::dynamic_bitset<uint8_t> essd_bs{ ESSD_header_size * 8, 0x0 };
-            from_block_range(cbegin(essd_buffer), cend(essd_buffer), essd_bs);
+            // Create bitset from packet buffer
+            auto essd_bs = from_packet_buffer<ESSD_header_size>(p_buffer);
 
             // Set fields
             ESSD essd{};
@@ -603,12 +566,8 @@ namespace TS
 
         while (descriptors_size)
         {
-            // Read from buffer
-            auto dsc_buffer = p_buffer.read(descriptor_header_size);
-
-            // Create bitset from buffer
-            boost::dynamic_bitset<uint8_t> dsc_bs{ descriptor_header_size * 8, 0x0 };
-            from_block_range(cbegin(dsc_buffer), cend(dsc_buffer), dsc_bs);
+            // Create bitset from packet buffer
+            auto dsc_bs = from_packet_buffer<descriptor_header_size>(p_buffer);
 
             // Set fields
             Descriptor descriptor{};

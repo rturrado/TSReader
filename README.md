@@ -49,19 +49,20 @@ The code should use:
 - [X] Write audio and video to output files.<br/>
     This is done as a post packet processing stage, together with the gathering of stats.<br/>
     These actions are optional, and requested by the user through command line parameters.
+- [X] Revisit the PacketParser implementation: code more clear and elegant.
+  - [X] Encapsulate basic repetitive operations (e.g. read from buffer and create bitset)
+  - [X] Simplify complex functions.
 
 ## TODO
 
 - [ ] Create a Makefile.
-- [ ] Revisit the PacketParser implementation: code more clear and elegant.
-  - [ ] Encapsulate basic repetitive operations (e.g. read from buffer and create bitset)
-  - [ ] Simplify complex functions.
 - [ ] Revisit the PacketBuffer implementation: performance.
   - [ ] Minimize the copy of vectors of bytes.
   - [ ] Reimplement read operation as a get view returning a span?
 - [ ] Test with other TS files than elephants.ts.
+- [ ] New branch: reimplement using modules.<br/>
+    This would be especially useful for Packet.h, since it is linked from many compilation units.
 - [ ] New branch: reimplement the FileReader as a pipeline of stages (reading, parsing, processing, printing stats...)
-- [ ] New branch: reimplement using modules.
 
 ## Usage
 

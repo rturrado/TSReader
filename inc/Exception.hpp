@@ -82,10 +82,6 @@ namespace TS
     {
         explicit PacketParserException(const char* message) : std::exception{ message } {}
     };
-    struct InvalidPATTableDataSize : public PacketParserException
-    {
-        InvalidPATTableDataSize() : PacketParserException{ "invalid PAT table data size" } {};
-    };
     struct InvalidPrivateBit : public PacketParserException
     {
         InvalidPrivateBit() : PacketParserException{ "invalid private bit" } {};
