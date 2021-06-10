@@ -7,6 +7,20 @@
 
 namespace TS
 {
+    std::vector<uint8_t> PacketBuffer::read(uint8_t n)
+    {
+        if (_pos + n > size())
+        {
+            throw PacketBufferOverrun(n, size() - _pos);
+        }
+
+        std::vector<uint8_t> ret{ cbegin(_buffer) + _pos, cbegin(_buffer) + _pos + n };
+
+        _pos += n;
+
+        return ret;
+    }
+    
     /* friend */
     std::ifstream& operator>>(std::ifstream& ifs, PacketBuffer& pb)
     {

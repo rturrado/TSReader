@@ -59,6 +59,7 @@ The code should use:
 - [ ] Revisit the PacketBuffer implementation: performance.
   - [ ] Minimize the copy of vectors of bytes.
   - [ ] Reimplement read operation as a get view returning a span?
+- [ ] Test with other TS files than elephants.ts.
 - [ ] New branch: reimplement the FileReader as a pipeline of stages (reading, parsing, processing, printing stats...)
 - [ ] New branch: reimplement using modules.
 

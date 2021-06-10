@@ -1,9 +1,10 @@
 #ifndef __TS_PACKET_H__
 #define __TS_PACKET_H__
 
-#include <bitset>
 #include <iostream>
 #include <optional>
+#include <variant>
+#include <vector>
 
 #include <boost/dynamic_bitset/dynamic_bitset.hpp>
 
@@ -101,14 +102,31 @@ namespace TS
     // Masks
     //
     // Header
-    const boost::dynamic_bitset<uint8_t> hdr_sync_byte_mask_bs{ 32, 0xff'00'00'00 };
-    const boost::dynamic_bitset<uint8_t> hdr_transport_error_indicator_mask_bs{ 32, 0x00'80'00'00 };
-    const boost::dynamic_bitset<uint8_t> hdr_payload_unit_start_indicator_mask_bs{ 32, 0x00'40'00'00 };
-    const boost::dynamic_bitset<uint8_t> hdr_transport_priority_mask_bs{ 32, 0x00'20'00'00 };
-    const boost::dynamic_bitset<uint8_t> hdr_PID_mask_bs{ 32, 0x00'00'1f'ff'00 };
-    const boost::dynamic_bitset<uint8_t> hdr_transport_scrambling_control_mask_bs{ 32, 0x00'00'00'c0 };
-    const boost::dynamic_bitset<uint8_t> hdr_adaptation_field_control_mask_bs{ 32, 0x00'00'00'30 };
-    const boost::dynamic_bitset<uint8_t> hdr_continuity_counter_mask_bs{ 32, 0x00'00'00'0f };
+    const std::array<uint8_t, 4> hdr_sync_byte_mask_array{ 0xff, 0x00, 0x00, 0x00 };
+    const std::array<uint8_t, 4> hdr_transport_error_indicator_mask_array{ 0x00, 0x80, 0x00, 0x00 };
+    const std::array<uint8_t, 4> hdr_payload_unit_start_indicator_mask_array{ 0x00, 0x40, 0x00, 0x00 };
+    const std::array<uint8_t, 4> hdr_transport_priority_mask_array{ 0x00, 0x20, 0x00, 0x00 };
+    const std::array<uint8_t, 4> hdr_PID_mask_array{ 0x00, 0x1f, 0xff, 0x00 };
+    const std::array<uint8_t, 4> hdr_transport_scrambling_control_mask_array{ 0x00, 0x00, 0x00, 0xc0 };
+    const std::array<uint8_t, 4> hdr_adaptation_field_control_mask_array{ 0x00, 0x00, 0x00, 0x30 };
+    const std::array<uint8_t, 4> hdr_continuity_counter_mask_array{ 0x00, 0x00, 0x00, 0x0f };
+
+    const boost::dynamic_bitset<uint8_t> hdr_sync_byte_mask_bs{
+        cbegin(hdr_sync_byte_mask_array), cend(hdr_sync_byte_mask_array) };
+    const boost::dynamic_bitset<uint8_t> hdr_transport_error_indicator_mask_bs{
+        cbegin(hdr_transport_error_indicator_mask_array), cend(hdr_transport_error_indicator_mask_array) };
+    const boost::dynamic_bitset<uint8_t> hdr_payload_unit_start_indicator_mask_bs{
+        cbegin(hdr_payload_unit_start_indicator_mask_array), cend(hdr_payload_unit_start_indicator_mask_array) };
+    const boost::dynamic_bitset<uint8_t> hdr_transport_priority_mask_bs{
+        cbegin(hdr_transport_priority_mask_array), cend(hdr_transport_priority_mask_array) };
+    const boost::dynamic_bitset<uint8_t> hdr_PID_mask_bs{
+        cbegin(hdr_PID_mask_array), cend(hdr_PID_mask_array) };
+    const boost::dynamic_bitset<uint8_t> hdr_transport_scrambling_control_mask_bs{
+        cbegin(hdr_transport_scrambling_control_mask_array), cend(hdr_transport_scrambling_control_mask_array) };
+    const boost::dynamic_bitset<uint8_t> hdr_adaptation_field_control_mask_bs{
+        cbegin(hdr_adaptation_field_control_mask_array), cend(hdr_adaptation_field_control_mask_array) };
+    const boost::dynamic_bitset<uint8_t> hdr_continuity_counter_mask_bs{
+        cbegin(hdr_continuity_counter_mask_array), cend(hdr_continuity_counter_mask_array) };
 
     // Adaptation field
     const boost::dynamic_bitset<uint8_t> af_discontinuity_indicator_mask_bs{ 8, 0x80 };
@@ -121,35 +139,64 @@ namespace TS
     const boost::dynamic_bitset<uint8_t> af_extension_flag_mask_bs{ 8, 0x01 };
 
     // Adaptation extension
-    const boost::dynamic_bitset<uint8_t> ae_length_mask_bs{ 16, 0xff'00 };
-    const boost::dynamic_bitset<uint8_t> ae_legal_time_window_flag_mask_bs{ 16, 0x00'80 };
-    const boost::dynamic_bitset<uint8_t> ae_piecewise_rate_flag_mask_bs{ 16, 0x00'40 };
-    const boost::dynamic_bitset<uint8_t> ae_seamless_splice_flag_mask_bs{ 16, 0x00'20 };
-    const boost::dynamic_bitset<uint8_t> ae_reserved_mask_bs{ 16, 0x00'1f };
+    const std::array<uint8_t, 2> ae_length_mask_array{ 0xff, 0x00};
+    const std::array<uint8_t, 2> ae_legal_time_window_flag_mask_array{ 0x00, 0x80 };
+    const std::array<uint8_t, 2> ae_piecewise_rate_flag_mask_array{ 0x00, 0x40 };
+    const std::array<uint8_t, 2> ae_seamless_splice_flag_mask_array{ 0x00, 0x20 };
+    const std::array<uint8_t, 2> ae_reserved_mask_array{ 0x00, 0x1f };
+
+    const boost::dynamic_bitset<uint8_t> ae_length_mask_bs{
+        cbegin(ae_length_mask_array), cend(ae_length_mask_array) };
+    const boost::dynamic_bitset<uint8_t> ae_legal_time_window_flag_mask_bs{
+        cbegin(ae_legal_time_window_flag_mask_array), cend(ae_legal_time_window_flag_mask_array) };
+    const boost::dynamic_bitset<uint8_t> ae_piecewise_rate_flag_mask_bs{
+        cbegin(ae_piecewise_rate_flag_mask_array), cend(ae_piecewise_rate_flag_mask_array) };
+    const boost::dynamic_bitset<uint8_t> ae_seamless_splice_flag_mask_bs{
+        cbegin(ae_seamless_splice_flag_mask_array), cend(ae_seamless_splice_flag_mask_array) };
+    const boost::dynamic_bitset<uint8_t> ae_reserved_mask_bs{
+        cbegin(ae_reserved_mask_array), cend(ae_reserved_mask_array) };
 
     // Adaptation extension optional
-    const boost::dynamic_bitset<uint8_t> aeo_legal_time_window_valid_flag_mask_bs{ 16, 0x80'00 };
-    const boost::dynamic_bitset<uint8_t> aeo_legal_time_window_offset_mask_bs{ 16, 0x7f'ff };
-    const boost::dynamic_bitset<uint8_t> aeo_piecewise_rate_reserved_mask_bs{ 24, 0xc0'00'00 };
-    const boost::dynamic_bitset<uint8_t> aeo_piecewise_rate_mask_bs{ 24, 0x3f'ff'ff };
+    const std::array<uint8_t, 2> aeo_legal_time_window_valid_flag_mask_array{ 0x80, 0x00 };
+    const std::array<uint8_t, 2> aeo_legal_time_window_offset_mask_array{ 0x7f, 0xff };
+    const std::array<uint8_t, 3> aeo_piecewise_rate_reserved_mask_array{ 0xc0, 0x00, 0x00 };
+    const std::array<uint8_t, 3> aeo_piecewise_rate_mask_array{ 0x3f, 0xff, 0xff };
     const std::array<uint8_t, 5> aeo_seamless_splice_type_mask_array{ 0xf0, 0x00, 0x00, 0x00, 0x00 };
     const std::array<uint8_t, 5> aeo_DTS_next_access_unit_mask_array{ 0x0e, 0xff, 0xfe, 0xff, 0xfe };
+
+    const boost::dynamic_bitset<uint8_t> aeo_legal_time_window_valid_flag_mask_bs{
+        cbegin(aeo_legal_time_window_valid_flag_mask_array), cend(aeo_legal_time_window_valid_flag_mask_array) };
+    const boost::dynamic_bitset<uint8_t> aeo_legal_time_window_offset_mask_bs{
+        cbegin(aeo_legal_time_window_offset_mask_array), cend(aeo_legal_time_window_offset_mask_array) };
+    const boost::dynamic_bitset<uint8_t> aeo_piecewise_rate_reserved_mask_bs{
+        cbegin(aeo_piecewise_rate_reserved_mask_array), cend(aeo_piecewise_rate_reserved_mask_array) };
+    const boost::dynamic_bitset<uint8_t> aeo_piecewise_rate_mask_bs{
+        cbegin(aeo_piecewise_rate_mask_array), cend(aeo_piecewise_rate_mask_array) };
     const boost::dynamic_bitset<uint8_t> aeo_seamless_splice_type_mask_bs{
-        crbegin(aeo_seamless_splice_type_mask_array),
-        crend(aeo_seamless_splice_type_mask_array)
-    };
+        cbegin(aeo_seamless_splice_type_mask_array), cend(aeo_seamless_splice_type_mask_array) };
     const boost::dynamic_bitset<uint8_t> aeo_DTS_next_access_unit_mask_bs{
-        crbegin(aeo_DTS_next_access_unit_mask_array),
-        crend(aeo_DTS_next_access_unit_mask_array)
-    };
+        cbegin(aeo_DTS_next_access_unit_mask_array), cend(aeo_DTS_next_access_unit_mask_array) };
 
     // Table header
-    const boost::dynamic_bitset<uint8_t> th_table_id_mask_bs{ 24, 0xff'00'00 };
-    const boost::dynamic_bitset<uint8_t> th_section_syntax_indicator_mask_bs{ 24, 0x00'80'00 };
-    const boost::dynamic_bitset<uint8_t> th_private_bit_mask_bs{ 24, 0x00'40'00 };
-    const boost::dynamic_bitset<uint8_t> th_reserved_bits_mask_bs{ 24, 0x00'30'00 };
-    const boost::dynamic_bitset<uint8_t> th_section_length_unused_bits_mask_bs{ 24, 0x00'0c'00 };
-    const boost::dynamic_bitset<uint8_t> th_section_length_mask_bs{ 24, 0x00'03'ff };
+    const std::array<uint8_t, 3> th_table_id_mask_array{ 0xff, 0x00, 0x00 };
+    const std::array<uint8_t, 3> th_section_syntax_indicator_mask_array{ 0x00, 0x80, 0x00 };
+    const std::array<uint8_t, 3> th_private_bit_mask_array{ 0x00, 0x40, 0x00 };
+    const std::array<uint8_t, 3> th_reserved_bits_mask_array{ 0x00, 0x30, 0x00 };
+    const std::array<uint8_t, 3> th_section_length_unused_bits_mask_array{ 0x00, 0x0c, 0x00 };
+    const std::array<uint8_t, 3> th_section_length_mask_array{ 0x00, 0x03, 0xff };
+
+    const boost::dynamic_bitset<uint8_t> th_table_id_mask_bs{
+        cbegin(th_table_id_mask_array), cend(th_table_id_mask_array) };
+    const boost::dynamic_bitset<uint8_t> th_section_syntax_indicator_mask_bs{
+        cbegin(th_section_syntax_indicator_mask_array), cend(th_section_syntax_indicator_mask_array) };
+    const boost::dynamic_bitset<uint8_t> th_private_bit_mask_bs{
+        cbegin(th_private_bit_mask_array), cend(th_private_bit_mask_array) };
+    const boost::dynamic_bitset<uint8_t> th_reserved_bits_mask_bs{
+        cbegin(th_reserved_bits_mask_array), cend(th_reserved_bits_mask_array) };
+    const boost::dynamic_bitset<uint8_t> th_section_length_unused_bits_mask_bs{
+        cbegin(th_section_length_unused_bits_mask_array), cend(th_section_length_unused_bits_mask_array) };
+    const boost::dynamic_bitset<uint8_t> th_section_length_mask_bs{
+        cbegin(th_section_length_mask_array), cend(th_section_length_mask_array) };
 
     // Table syntax section
     const std::array<uint8_t, 5> tss_table_id_extension_mask_array{ 0xff, 0xff, 0x00, 0x00, 0x00 };
@@ -158,42 +205,52 @@ namespace TS
     const std::array<uint8_t, 5> tss_current_next_indicator_mask_array{ 0x00, 0x00, 0x01, 0x00, 0x00 };
     const std::array<uint8_t, 5> tss_section_number_mask_array{ 0x00, 0x00, 0x00, 0xff, 0x00 };
     const std::array<uint8_t, 5> tss_last_section_number_mask_array{ 0x00, 0x00, 0x00, 0x00, 0xff };
+    const std::array<uint8_t, 4> tss_crc32_mask_array{ 0xff, 0xff, 0xff, 0xff };
+
     const boost::dynamic_bitset<uint8_t> tss_table_id_extension_mask_bs{
-        crbegin(tss_table_id_extension_mask_array),
-        crend(tss_table_id_extension_mask_array)
-    };
+        cbegin(tss_table_id_extension_mask_array), cend(tss_table_id_extension_mask_array) };
     const boost::dynamic_bitset<uint8_t> tss_reserved_bits_mask_bs{
-        crbegin(tss_reserved_bits_mask_array),
-        crend(tss_reserved_bits_mask_array)
-    };
+        cbegin(tss_reserved_bits_mask_array), cend(tss_reserved_bits_mask_array) };
     const boost::dynamic_bitset<uint8_t> tss_version_number_mask_bs{
-        crbegin(tss_version_number_mask_array),
-        crend(tss_version_number_mask_array)
-    };
+        cbegin(tss_version_number_mask_array), cend(tss_version_number_mask_array) };
     const boost::dynamic_bitset<uint8_t> tss_current_next_indicator_mask_bs{
-        crbegin(tss_current_next_indicator_mask_array),
-        crend(tss_current_next_indicator_mask_array)
-    };
+        cbegin(tss_current_next_indicator_mask_array), cend(tss_current_next_indicator_mask_array) };
     const boost::dynamic_bitset<uint8_t> tss_section_number_mask_bs{
-        crbegin(tss_section_number_mask_array),
-        crend(tss_section_number_mask_array)
-    };
+        cbegin(tss_section_number_mask_array), cend(tss_section_number_mask_array) };
     const boost::dynamic_bitset<uint8_t> tss_last_section_number_mask_bs{
-        crbegin(tss_last_section_number_mask_array),
-        crend(tss_last_section_number_mask_array)
-    };
+        cbegin(tss_last_section_number_mask_array), cend(tss_last_section_number_mask_array) };
+    const boost::dynamic_bitset<uint8_t> tss_crc32_mask_bs{
+        cbegin(tss_crc32_mask_array), cend(tss_crc32_mask_array) };
 
     // PAT table
-    const boost::dynamic_bitset<uint8_t> PAT_table_data_table_id_extension_mask_bs{ 32, 0xff'ff'00'00 };
-    const boost::dynamic_bitset<uint8_t> PAT_table_data_reserved_bits_mask_bs{ 32, 0x00'00'e0'00 };
-    const boost::dynamic_bitset<uint8_t> PAT_table_data_program_map_PID_mask_bs{ 32, 0x00'00'1f'ff };
+    const std::array<uint8_t, 4> PAT_table_data_table_id_extension_mask_array{ 0xff, 0xff, 0x00, 0x00 };
+    const std::array<uint8_t, 4> PAT_table_data_reserved_bits_mask_array{ 0x00, 0x00, 0xe0, 0x00 };
+    const std::array<uint8_t, 4> PAT_table_data_program_map_PID_mask_array{ 0x00, 0x00, 0x1f, 0xff };
+
+    const boost::dynamic_bitset<uint8_t> PAT_table_data_table_id_extension_mask_bs{
+        cbegin(PAT_table_data_table_id_extension_mask_array), cend(PAT_table_data_table_id_extension_mask_array) };
+    const boost::dynamic_bitset<uint8_t> PAT_table_data_reserved_bits_mask_bs{
+        cbegin(PAT_table_data_reserved_bits_mask_array), cend(PAT_table_data_reserved_bits_mask_array) };
+    const boost::dynamic_bitset<uint8_t> PAT_table_data_program_map_PID_mask_bs{
+        cbegin(PAT_table_data_program_map_PID_mask_array), cend(PAT_table_data_program_map_PID_mask_array) };
 
     // PMT table
-    const boost::dynamic_bitset<uint8_t> PMT_reserved_bits_mask_bs{ 32, 0xe0'00'00'00 };
-    const boost::dynamic_bitset<uint8_t> PMT_PCR_PID_mask_bs{ 32, 0x1f'ff'00'00 };
-    const boost::dynamic_bitset<uint8_t> PMT_reserved_bits_2_mask_bs{ 32, 0x00'00'f0'00 };
-    const boost::dynamic_bitset<uint8_t> PMT_program_info_length_unused_bits_mask_bs{ 32, 0x00'00'0c'00 };
-    const boost::dynamic_bitset<uint8_t> PMT_program_info_length_bs{ 32, 0x00'00'03'ff };
+    const std::array<uint8_t, 4> PMT_reserved_bits_mask_array{ 0xe0, 0x00, 0x00, 0x00 };
+    const std::array<uint8_t, 4> PMT_PCR_PID_mask_array{ 0x1f, 0xff, 0x00, 0x00 };
+    const std::array<uint8_t, 4> PMT_reserved_bits_2_mask_array{ 0x00, 0x00, 0xf0, 0x00 };
+    const std::array<uint8_t, 4> PMT_program_info_length_unused_bits_mask_array{ 0x00, 0x00, 0x0c, 0x00 };
+    const std::array<uint8_t, 4> PMT_program_info_length_array{ 0x00, 0x00, 0x03, 0xff };
+
+    const boost::dynamic_bitset<uint8_t> PMT_reserved_bits_mask_bs{
+        cbegin(PMT_reserved_bits_mask_array), cend(PMT_reserved_bits_mask_array) };
+    const boost::dynamic_bitset<uint8_t> PMT_PCR_PID_mask_bs{
+        cbegin(PMT_PCR_PID_mask_array), cend(PMT_PCR_PID_mask_array) };
+    const boost::dynamic_bitset<uint8_t> PMT_reserved_bits_2_mask_bs{
+        cbegin(PMT_reserved_bits_2_mask_array), cend(PMT_reserved_bits_2_mask_array) };
+    const boost::dynamic_bitset<uint8_t> PMT_program_info_length_unused_bits_mask_bs{
+        cbegin(PMT_program_info_length_unused_bits_mask_array), cend(PMT_program_info_length_unused_bits_mask_array) };
+    const boost::dynamic_bitset<uint8_t> PMT_program_info_length_bs{
+        cbegin(PMT_program_info_length_array), cend(PMT_program_info_length_array) };
 
     // Elementary stream specific data
     const std::array<uint8_t, 5> ESSD_stream_type_mask_array{ 0xff, 0x00, 0x00, 0x00, 0x00 };
@@ -202,34 +259,26 @@ namespace TS
     const std::array<uint8_t, 5> ESSD_reserved_bits_2_mask_array{ 0x00, 0x00, 0x00, 0xf0, 0x00 };
     const std::array<uint8_t, 5> ESSD_info_length_unused_bits_mask_array{ 0x00, 0x00, 0x00, 0x0c, 0x00 };
     const std::array<uint8_t, 5> ESSD_info_length_mask_array{ 0x00, 0x00, 0x00, 0x03, 0xff };
+
     const boost::dynamic_bitset<uint8_t> ESSD_stream_type_mask_bs{
-        crbegin(ESSD_stream_type_mask_array),
-        crend(ESSD_stream_type_mask_array)
-    };
+        cbegin(ESSD_stream_type_mask_array), cend(ESSD_stream_type_mask_array) };
     const boost::dynamic_bitset<uint8_t> ESSD_reserved_bits_mask_bs{
-        crbegin(ESSD_reserved_bits_mask_array),
-        crend(ESSD_reserved_bits_mask_array)
-    };
+        cbegin(ESSD_reserved_bits_mask_array), cend(ESSD_reserved_bits_mask_array) };
     const boost::dynamic_bitset<uint8_t> ESSD_elementary_PID_mask_bs{
-        crbegin(ESSD_elementary_PID_mask_array),
-        crend(ESSD_elementary_PID_mask_array)
-    };
+        cbegin(ESSD_elementary_PID_mask_array), cend(ESSD_elementary_PID_mask_array) };
     const boost::dynamic_bitset<uint8_t> ESSD_reserved_bits_2_mask_bs{
-        crbegin(ESSD_reserved_bits_2_mask_array),
-        crend(ESSD_reserved_bits_2_mask_array)
-    };
+        cbegin(ESSD_reserved_bits_2_mask_array), cend(ESSD_reserved_bits_2_mask_array) };
     const boost::dynamic_bitset<uint8_t> ESSD_info_length_unused_bits_mask_bs{
-        crbegin(ESSD_info_length_unused_bits_mask_array),
-        crend(ESSD_info_length_unused_bits_mask_array)
-    };
+        cbegin(ESSD_info_length_unused_bits_mask_array), cend(ESSD_info_length_unused_bits_mask_array) };
     const boost::dynamic_bitset<uint8_t> ESSD_info_length_mask_bs{
-        crbegin(ESSD_info_length_mask_array),
-        crend(ESSD_info_length_mask_array)
-    };
+        cbegin(ESSD_info_length_mask_array), cend(ESSD_info_length_mask_array) };
 
     // Descriptors
-    const boost::dynamic_bitset<uint8_t> dsc_tag_mask_bs{ 16, 0xff'00 };
-    const boost::dynamic_bitset<uint8_t> dsc_length_mask_bs{ 16, 0x00'ff };
+    const std::array<uint8_t, 2> dsc_tag_mask_array{ 0xff, 0x00 };
+    const std::array<uint8_t, 2> dsc_length_mask_array{ 0x00, 0xff };
+
+    const boost::dynamic_bitset<uint8_t> dsc_tag_mask_bs{ cbegin(dsc_tag_mask_array), cend(dsc_tag_mask_array) };
+    const boost::dynamic_bitset<uint8_t> dsc_length_mask_bs{ cbegin(dsc_length_mask_array), cend(dsc_length_mask_array) };
 
 
 
