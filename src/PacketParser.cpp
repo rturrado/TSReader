@@ -91,6 +91,7 @@ namespace TS
     {
         // Read from buffer
         auto header_buffer = p_buffer.read(header_size);
+
         // Create bitset from buffer
         boost::dynamic_bitset<uint8_t> header_bs{ header_size * 8 };
         from_block_range(cbegin(header_buffer), cend(header_buffer), header_bs);
@@ -140,6 +141,7 @@ namespace TS
 
         // Read from buffer
         auto af_buffer = p_buffer.read(af_flags_size);
+
         // Create bitset from buffer
         boost::dynamic_bitset<uint8_t> af_bs{ 8, af_buffer[0] };
 
@@ -230,6 +232,7 @@ namespace TS
 
         // Read from buffer
         auto ae_buffer = p_buffer.read(adaptation_extension_header_size);
+
         // Create bitset from buffer
         boost::dynamic_bitset<uint8_t> ae_bs{ adaptation_extension_header_size * 8 };
         from_block_range(cbegin(ae_buffer), cend(ae_buffer), ae_bs);
@@ -316,22 +319,14 @@ namespace TS
         // Set fields
         Pointer& ptr = *_packet.payload_data->pointer;
 
-        ptr.pointer_field = ptr_buffer[0];  // pointer field
+        ptr.pointer_field = *cbegin(ptr_buffer);  // pointer field
 
         if (ptr.pointer_field != 0)
         {
             ptr.pointer_filler_bytes = p_buffer.read(ptr.pointer_field);  // pointer filler bytes
 
             // If first of the filler bytes is 0xFF, then the rest of the bytes have to be 0xFF as well
-            if ((*ptr.pointer_filler_bytes)[0] == stuffing_byte)
-            {
-                if (std::any_of(cbegin(*ptr.pointer_filler_bytes) + 1, cend(*ptr.pointer_filler_bytes),
-                    [](uint8_t b) { return b != stuffing_byte; }))
-                {
-                    throw InvalidStuffingBytes{};
-                }
-            }
-            else
+            if (not check_and_parse_stuffing_bytes_section(*ptr.pointer_filler_bytes))
             {
                 throw Unimplemented("parsing of pointer filler bytes containing end of section");
             }
@@ -357,52 +352,78 @@ namespace TS
         th.table_id = read_field<uint8_t>(th_bs, th_table_id_mask_bs);
 
         // Check end of table section repeat case
-        if (th.table_id == stuffing_byte)
+        if (check_and_parse_stuffing_bytes_section(th.table_id, p_buffer.size_not_read(), p_buffer))
         {
-            th_buffer = p_buffer.read(p_buffer.size_not_read());
+            return;
+        }
 
-            if (std::any_of(cbegin(th_buffer), cend(th_buffer),
+        bool payload_contains_PAT_CAT_or_PMT_table = _packet.payload_contains_PAT_table()
+            || _packet.payload_contains_CAT_table()
+            || _packet.payload_contains_PMT_table();
+
+        th.section_syntax_indicator = th_bs.test(th_section_syntax_indicator_mask_bs.find_first());
+        th.private_bit = th_bs.test(th_private_bit_mask_bs.find_first());
+        th.section_length = read_field<uint16_t>(th_bs, th_section_length_mask_bs);
+
+        if (th.section_syntax_indicator != payload_contains_PAT_CAT_or_PMT_table) { throw InvalidSectionSyntaxIndicator{}; }
+        if (th.private_bit == payload_contains_PAT_CAT_or_PMT_table) { throw InvalidPrivateBit{}; }
+        if (not all_field_bits_set(th_bs, th_reserved_bits_mask_bs)) { throw InvalidReservedBits{}; }
+        if (not all_field_bits_unset(th_bs, th_section_length_unused_bits_mask_bs)) { throw InvalidUnusedBits{}; }
+
+        if (th.section_length > th_max_section_length) { throw InvalidSectionLength{}; }
+        if (th.section_length > p_buffer.size_not_read()) { throw Unimplemented{ "PSI table spanning across different packets" }; }
+            
+        if (th.has_syntax_section())
+        {
+            parse_table_syntax_section(p_buffer);
+
+            // Save packet buffer end read position
+            auto packet_buffer_end_pos = p_buffer.get_read_position();
+
+            // Check CRC32
+            auto byte_count{ packet_buffer_end_pos - packet_buffer_start_pos - tss_crc32_size };
+            using crc_32_mpeg2 = boost::crc_optimal<32, 0x04C11DB7, 0xFFFFFFFF, 0x00000000, false, false>;
+            crc_32_mpeg2 result{};
+            result.process_bytes(p_buffer.data() + packet_buffer_start_pos, byte_count);
+            if (th.table_syntax->crc32 != result.checksum())
+            {
+                throw InvalidCRC32{};
+            }
+        }
+    }
+
+    bool PacketParser::check_and_parse_stuffing_bytes_section(const std::vector<uint8_t>& buffer) const
+    {
+        if (*cbegin(buffer) == stuffing_byte)
+        {
+            if (std::any_of(cbegin(buffer) + 1, cend(buffer),
                 [](uint8_t b) { return b != stuffing_byte; }))
             {
                 throw InvalidStuffingBytes{};
             }
+
+            return true;
         }
-        else
+
+        return false;
+    }
+
+    bool PacketParser::check_and_parse_stuffing_bytes_section(uint8_t first_byte, uint8_t bytes_to_read,
+        PacketBuffer& p_buffer) const
+    {
+        if (first_byte == stuffing_byte)
         {
-            bool payload_contains_PAT_CAT_or_PMT_table = _packet.payload_contains_PAT_table()
-                || _packet.payload_contains_CAT_table()
-                || _packet.payload_contains_PMT_table();
+            auto buffer = p_buffer.read(bytes_to_read);
 
-            th.section_syntax_indicator = th_bs.test(th_section_syntax_indicator_mask_bs.find_first());
-            th.private_bit = th_bs.test(th_private_bit_mask_bs.find_first());
-            th.section_length = read_field<uint16_t>(th_bs, th_section_length_mask_bs);
-
-            if (th.section_syntax_indicator != payload_contains_PAT_CAT_or_PMT_table) { throw InvalidSectionSyntaxIndicator{}; }
-            if (th.private_bit == payload_contains_PAT_CAT_or_PMT_table) { throw InvalidPrivateBit{}; }
-            if (not all_field_bits_set(th_bs, th_reserved_bits_mask_bs)) { throw InvalidReservedBits{}; }
-            if (not all_field_bits_unset(th_bs, th_section_length_unused_bits_mask_bs)) { throw InvalidUnusedBits{}; }
-
-            if (th.section_length > th_max_section_length) { throw InvalidSectionLength{}; }
-            if (th.section_length > p_buffer.size_not_read()) { throw Unimplemented{ "PSI table spanning across different packets" }; }
-            
-            if (th.has_syntax_section())
+            if (std::any_of(cbegin(buffer), cend(buffer),
+                [](uint8_t b) { return b != stuffing_byte; }))
             {
-                parse_table_syntax_section(p_buffer);
-
-                // Save packet buffer end read position
-                auto packet_buffer_end_pos = p_buffer.get_read_position();
-
-                // Check CRC32
-                auto byte_count{ packet_buffer_end_pos - packet_buffer_start_pos - tss_crc32_size };
-                using crc_32_mpeg2 = boost::crc_optimal<32, 0x04C11DB7, 0xFFFFFFFF, 0x00000000, false, false>;
-                crc_32_mpeg2 result{};
-                result.process_bytes(p_buffer.data() + packet_buffer_start_pos, byte_count);
-                if (th.table_syntax->crc32 != result.checksum())
-                {
-                    throw InvalidCRC32{};
-                }
+                throw InvalidStuffingBytes{};
             }
+
+            return true;
         }
+        return false;
     }
 
     void PacketParser::parse_table_syntax_section(PacketBuffer& p_buffer)

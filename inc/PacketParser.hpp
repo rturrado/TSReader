@@ -14,6 +14,7 @@ namespace TS
         void parse(PacketBuffer& buffer);
         Packet& get_packet() { return _packet; }
         size_t get_packet_index() { return _packet_index; }
+
     private:
         static size_t _packet_index;
 
@@ -27,6 +28,8 @@ namespace TS
         void parse_payload_data_as_PSI(PacketBuffer& p_buffer);
         void parse_pointer(PacketBuffer& buffer);
         void parse_table_header(PacketBuffer& buffer);
+        bool check_and_parse_stuffing_bytes_section(const std::vector<uint8_t>& buffer) const;
+        bool check_and_parse_stuffing_bytes_section(uint8_t first_byte, uint8_t bytes_to_read, PacketBuffer& p_buffer) const;
         void parse_table_syntax_section(PacketBuffer& p_buffer);
         void parse_PAT_table(PacketBuffer& p_buffer);
         void parse_PMT_table(PacketBuffer& p_buffer);
