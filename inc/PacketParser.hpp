@@ -1,10 +1,10 @@
-#ifndef __TS_PACKET_PARSER_H__
-#define __TS_PACKET_PARSER_H__
+#ifndef __TS_PACKET_PARSER_HPP__
+#define __TS_PACKET_PARSER_HPP__
 
 #include "Packet.hpp"
 #include "PacketBuffer.hpp"
 
-#include <vector>
+#include <span>
 
 namespace TS
 {
@@ -28,7 +28,7 @@ namespace TS
         void parse_payload_data_as_PSI(PacketBuffer& p_buffer);
         void parse_pointer(PacketBuffer& buffer);
         void parse_table_header(PacketBuffer& buffer);
-        bool check_and_parse_stuffing_bytes_section(const std::vector<uint8_t>& buffer) const;
+        bool check_and_parse_stuffing_bytes_section(const byte_buffer_view& buffer) const;
         bool check_and_parse_stuffing_bytes_section(uint8_t first_byte, uint8_t bytes_to_read, PacketBuffer& p_buffer) const;
         void parse_table_syntax_section(PacketBuffer& p_buffer);
         void parse_PAT_table(PacketBuffer& p_buffer);

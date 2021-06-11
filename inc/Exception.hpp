@@ -1,5 +1,5 @@
-#ifndef __TS_EXCEPTION_H__
-#define __TS_EXCEPTION_H__
+#ifndef __TS_EXCEPTION_HPP__
+#define __TS_EXCEPTION_HPP__
 
 #include "Packet.hpp"
 

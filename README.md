@@ -52,13 +52,13 @@ The code should use:
 - [X] Revisit the PacketParser implementation: code more clear and elegant.
   - [X] Encapsulate basic repetitive operations (e.g. read from buffer and create bitset)
   - [X] Simplify complex functions.
+- [X] Revisit the PacketBuffer implementation: performance.
+  - [X] Minimize the copy of vectors of bytes.
+  - [X] Reimplement read operation as a get view returning a span.
 
 ## TODO
 
 - [ ] Create a Makefile.
-- [ ] Revisit the PacketBuffer implementation: performance.
-  - [ ] Minimize the copy of vectors of bytes.
-  - [ ] Reimplement read operation as a get view returning a span?
 - [ ] Test with other TS files than elephants.ts.
 - [ ] New branch: reimplement using modules.<br/>
     This would be especially useful for Packet.h, since it is linked from many compilation units.

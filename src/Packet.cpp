@@ -150,7 +150,7 @@ namespace TS
 
     // Payload data
     bool PayloadData::has_PES_data() const { return PES_data.has_value(); }
-    const std::vector<uint8_t>& PayloadData::get_PES_data() const { return PES_data.value(); }
+    const byte_buffer_view PayloadData::get_PES_data() const { return PES_data.value(); }
 
     // Packet
     bool Packet::get_payload_unit_start_indicator() const { return header.payload_unit_start_indicator; }

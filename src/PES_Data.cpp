@@ -14,12 +14,12 @@ namespace TS
         return PES_map.contains(p);
     }
 
-    TPES_data PES_Data::get_PES_data(PID p) const
+    const byte_buffer_view PES_Data::get_PES_data(PID p) const
     {
         return PES_map.at(p);
     }
 
-    void PES_Data::set_PES_data(PID p, TPES_data& data)
+    void PES_Data::set_PES_data(PID p, const byte_buffer_view& data)
     {
         PES_map[p] = data;
     }

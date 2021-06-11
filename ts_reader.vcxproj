@@ -168,6 +168,7 @@
     <ClCompile Include="src\PSI_Tables.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="inc\ByteBufferView.hpp" />
     <ClInclude Include="inc\Exception.hpp" />
     <ClInclude Include="inc\FileWriter.hpp" />
     <ClInclude Include="inc\PacketParser.hpp" />

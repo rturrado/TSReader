@@ -1,18 +1,19 @@
-#ifndef __PES_DATA_H__
-#define __PES_DATA_H__
+#ifndef __TS_PES_DATA_HPP__
+#define __TS_PES_DATA_HPP__
+
+#include "ByteBufferView.hpp"
 
 #include <functional>
 #include <map>
-#include <vector>
+#include <span>
 
 namespace TS
 {
     // Data structures to hold processed PES data
 
     using PID = uint16_t;
-    using TPES_data = std::vector<uint8_t>;
 
-    using TPES_map = std::map<PID, TPES_data>;  // PES PID -> PES data
+    using TPES_map = std::map<PID, byte_buffer_view>;  // PES PID -> PES data
 
     class PES_Data
     {
@@ -25,8 +26,8 @@ namespace TS
         static PES_Data& get_instance();
 
         bool has_PES_data(PID p) const;
-        TPES_data get_PES_data(PID p) const;
-        void set_PES_data(PID p, TPES_data& data);
+        const byte_buffer_view get_PES_data(PID p) const;
+        void set_PES_data(PID p, const byte_buffer_view& data);
     private:
         PES_Data() {}
 

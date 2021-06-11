@@ -83,6 +83,9 @@
     <ClInclude Include="inc\PES_Data.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="inc\ByteBufferView.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

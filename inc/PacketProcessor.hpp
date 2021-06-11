@@ -1,5 +1,5 @@
-#ifndef __PACKET_PROCESSOR_H__
-#define __PACKET_PROCESSOR_H__
+#ifndef __TS_PACKET_PROCESSOR_HPP__
+#define __TS_PACKET_PROCESSOR_HPP__
 
 #include "Packet.hpp"
 

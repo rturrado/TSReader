@@ -1,9 +1,12 @@
-#ifndef __TS_PACKET_H__
-#define __TS_PACKET_H__
+#ifndef __TS_PACKET_HPP__
+#define __TS_PACKET_HPP__
+
+#include "ByteBufferView.hpp"
 
 #include <iostream>
 #include <optional>
 #include <variant>
+#include <span>
 #include <vector>
 
 #include <boost/dynamic_bitset/dynamic_bitset.hpp>
@@ -288,7 +291,7 @@ namespace TS
     {
         uint8_t tag{ 0 };
         uint8_t length{ 0 };
-        std::optional<std::vector<uint8_t>> data{};
+        std::optional<byte_buffer_view> data{};
     };
 
     struct ESSD
@@ -343,7 +346,7 @@ namespace TS
     struct Pointer
     {
         uint8_t pointer_field{ 0 };
-        std::optional<std::vector<uint8_t>> pointer_filler_bytes{};
+        std::optional<byte_buffer_view> pointer_filler_bytes{};
 
         friend std::ostream& operator<<(std::ostream& os, const Pointer& ptr);
     };
@@ -352,10 +355,10 @@ namespace TS
     {
         std::optional<Pointer> pointer{};
         std::optional<TableHeader> table_header{};
-        std::optional<std::vector<uint8_t>> PES_data{};
+        std::optional<byte_buffer_view> PES_data{};
 
         bool has_PES_data() const;
-        const std::vector<uint8_t>& get_PES_data() const;
+        const byte_buffer_view get_PES_data() const;
 
         friend std::ostream& operator<<(std::ostream& os, const PayloadData& pd);
     };
@@ -397,9 +400,9 @@ namespace TS
         std::optional<boost::dynamic_bitset<uint8_t>> OPCR{};
         std::optional<int8_t> splice_countdown{};  // two's complement signed
         std::optional<uint8_t> transport_private_data_length{};
-        std::optional<std::vector<uint8_t>> transport_private_data{};
+        std::optional<byte_buffer_view> transport_private_data{};
         std::optional<AdaptationExtension> extension{};
-        std::optional<std::vector<uint8_t>> stuffing_bytes{};
+        std::optional<byte_buffer_view> stuffing_bytes{};
 
         friend std::ostream& operator<<(std::ostream& os, const AdaptationFieldOptional& afo);
     };

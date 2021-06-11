@@ -1,5 +1,5 @@
-#ifndef __STREAM_TYPES_H__
-#define __STREAM_TYPES_H__
+#ifndef __TS_STREAM_TYPES_HPP__
+#define __TS_STREAM_TYPES_HPP__
 
 #include <map>
 #include <string>

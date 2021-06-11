@@ -1,5 +1,5 @@
-#ifndef __PSI_TABLES_H__
-#define __PSI_TABLES_H__
+#ifndef __TS_PSI_TABLES_HPP__
+#define __TS_PSI_TABLES_HPP__
 
 #include <map>
 

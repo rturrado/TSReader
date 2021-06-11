@@ -1,6 +1,7 @@
-#ifndef __FILE_WRITER_H__
-#define __FILE_WRITER_H__
+#ifndef __TS_FILE_WRITER_HPP__
+#define __TS_FILE_WRITER_HPP__
 
+#include "ByteBufferView.hpp"
 #include "StreamType.hpp"
 #include "PES_Data.hpp"
 
@@ -15,7 +16,7 @@ namespace TS
         ~FileWriter();
 
         stream_type get_stream_type() const;
-        void write(const TPES_data& data);
+        void write(const byte_buffer_view& data);
     private:
         stream_type _stream_type{};
         std::ofstream _ofs{};

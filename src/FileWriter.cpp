@@ -34,7 +34,7 @@ namespace TS
         return _stream_type;
     }
 
-    void FileWriter::write(const TPES_data& data)
+    void FileWriter::write(const byte_buffer_view& data)
     {
         if (_ofs)
         {

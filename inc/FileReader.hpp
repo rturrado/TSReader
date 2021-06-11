@@ -1,5 +1,5 @@
-#ifndef __TS_READER_H__
-#define __TS_READER_H__
+#ifndef __TS_FILE_READER_HPP__
+#define __TS_FILE_READER_HPP__
 
 #include "Stats.hpp"
 

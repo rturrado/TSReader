@@ -1,5 +1,5 @@
-#ifndef __STATS_H__
-#define __STATS_H__
+#ifndef __TS_STATS_HPP__
+#define __TS_STATS_HPP__
 
 #include "Packet.hpp"
 

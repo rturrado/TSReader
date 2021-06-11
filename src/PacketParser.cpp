@@ -21,7 +21,7 @@ To parse a field from the TS file                     [table header file block] 
                                                                                        | 0d | b0 | 00 |     (value)
                                                                                        <---------------
 
-1) Read the TS package into a byte buffer.            [table header buffer]              2    1    0
+1) Read the TS packet into a byte buffer.             [table header buffer]              2    1    0
 2) Create the bitset from the buffer.                 [table header bitset]            <---------------
                                                                                        | 0d | b0 | 00 |
                                                                                        <---------------
@@ -372,7 +372,7 @@ namespace TS
             auto byte_count{ packet_buffer_end_pos - packet_buffer_start_pos - tss_crc32_size };
             using crc_32_mpeg2 = boost::crc_optimal<32, 0x04C11DB7, 0xFFFFFFFF, 0x00000000, false, false>;
             crc_32_mpeg2 result{};
-            result.process_bytes(p_buffer.data() + packet_buffer_start_pos, byte_count);
+            result.process_bytes(p_buffer.data_as_char_pointer() + packet_buffer_start_pos, byte_count);
             if (th.table_syntax->crc32 != result.checksum())
             {
                 throw InvalidCRC32{};
@@ -380,7 +380,7 @@ namespace TS
         }
     }
 
-    bool PacketParser::check_and_parse_stuffing_bytes_section(const std::vector<uint8_t>& buffer) const
+    bool PacketParser::check_and_parse_stuffing_bytes_section(const byte_buffer_view& buffer) const
     {
         if (*cbegin(buffer) == stuffing_byte)
         {

@@ -83,12 +83,6 @@ namespace TS
         auto PES_PID = packet.get_PID();
         auto PES_data = packet.payload_data->get_PES_data();
 
-        // ****
-        // TODO: if we always process the packet data before reading the next packet buffer,
-        //       we may not need to do a single copy
-        //       (packet buffer to packet's payload data's PES data and then from there to PES data map)
-        //       We could just pass references (or iterators)
-        // ****
         // Save PES data
         if (PSI_Tables::get_instance().is_PES_PID(PES_PID))
         {
