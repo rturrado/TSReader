@@ -337,6 +337,7 @@ namespace TS
 
         // Set fields
         TableHeader& th = *_packet.payload_data->table_header;
+
         th.table_id = read_field<uint8_t>(th_bs, th_table_id_mask_bs);
 
         // Check end of table section repeat case
@@ -345,13 +346,14 @@ namespace TS
             return;
         }
 
-        bool payload_contains_PAT_CAT_or_PMT_table = _packet.payload_contains_PAT_table()
-            || _packet.payload_contains_CAT_table()
-            || _packet.payload_contains_PMT_table();
-
         th.section_syntax_indicator = th_bs.test(th_section_syntax_indicator_mask_bs.find_first());
         th.private_bit = th_bs.test(th_private_bit_mask_bs.find_first());
         th.section_length = read_field<uint16_t>(th_bs, th_section_length_mask_bs);
+
+        // Checks
+        bool payload_contains_PAT_CAT_or_PMT_table = _packet.payload_contains_PAT_table()
+            || _packet.payload_contains_CAT_table()
+            || _packet.payload_contains_PMT_table();
 
         if (th.section_syntax_indicator != payload_contains_PAT_CAT_or_PMT_table) { throw InvalidSectionSyntaxIndicator{}; }
         if (th.private_bit == payload_contains_PAT_CAT_or_PMT_table) { throw InvalidPrivateBit{}; }

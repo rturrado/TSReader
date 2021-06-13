@@ -51,7 +51,9 @@ The code should use:
     These actions are optional, and requested by the user through command line parameters.
 - [X] Revisit the PacketParser implementation: code more clear and elegant.
   - [X] Encapsulate basic repetitive operations (e.g. read from buffer and create bitset)
+    - [ ] Implement the special case where the type is uint8_t?
   - [X] Simplify complex functions.
+  - [ ] Read a whole section (a struct) with a single variadic templated function?
 - [X] Revisit the PacketBuffer implementation: performance.
   - [X] Minimize the copy of vectors of bytes.
   - [X] Reimplement read operation as a get view returning a span.
@@ -63,6 +65,7 @@ The code should use:
 - [ ] New branch: reimplement using modules.<br/>
     This would be especially useful for Packet.h, since it is linked from many compilation units.
 - [ ] New branch: reimplement the FileReader as a pipeline of stages (reading, parsing, processing, printing stats...)
+- [ ] Add tests?
 
 ## Usage
 
