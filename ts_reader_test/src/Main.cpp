@@ -7,6 +7,19 @@
 
 int main(int argc, char* argv[])
 {
+    if (argc != 2)
+    {
+        std::cerr << "Usage: ts_reader_test <TS FILE PATH>\n";
+        std::cerr << "\n";
+        std::cerr << "  E.g: ts_reader_test elephants.ts\n";
+        exit(EXIT_FAILURE);
+    }
+    if (!std::filesystem::exists(argv[1]))
+    {
+        std::cerr << "Error: couldn't find TS file path: '" << argv[1] << "'\n";
+        exit(EXIT_FAILURE);
+    }
+
     // Write bitset to ofstream
     {
         auto start = std::chrono::high_resolution_clock::now();

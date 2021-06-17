@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <string>
 #include <sstream>
+#include <stdexcept>
 
 namespace TS
 {
@@ -16,7 +17,7 @@ namespace TS
     {
     public:
         explicit TSFilePathNotFound(const std::filesystem::path& fp) { _message += fp.string(); }
-        virtual const char* what() const override { return _message.c_str(); }
+        virtual const char* what() const noexcept override { return _message.c_str(); }
     private:
         std::string _message{ "couldn't find TS file path: " };
     };
@@ -25,7 +26,7 @@ namespace TS
     {
     public:
         explicit CouldNotOpenTSFile(const std::filesystem::path& fp) { _message += fp.string(); }
-        virtual const char* what() const override { return _message.c_str(); }
+        virtual const char* what() const noexcept override { return _message.c_str(); }
     private:
         std::string _message{ "couldn't open TS file: " };
     };
@@ -34,10 +35,9 @@ namespace TS
 
     // Command line parser
 
-    struct CommandLineParserException : public std::exception
+    struct CommandLineParserException : public std::runtime_error
     {
-        CommandLineParserException() {}
-        explicit CommandLineParserException(const char* message) : std::exception{ message } {}
+        explicit CommandLineParserException(const char* message) : std::runtime_error{ message } {}
     };
     struct InvalidNumberOfArguments : public CommandLineParserException
     {
@@ -45,8 +45,8 @@ namespace TS
     };
     struct InvalidStreamType : public CommandLineParserException
     {
-        explicit InvalidStreamType(const char* message) { _message += message; }
-        virtual const char* what() const override { return _message.c_str(); }
+        explicit InvalidStreamType(const char* message) : CommandLineParserException{ std::string{_message + message}.c_str() } {}
+        virtual const char* what() const noexcept override { return _message.c_str(); }
     private:
         std::string _message{ "invalid stream type: " };
     };
@@ -69,7 +69,7 @@ namespace TS
                 << "but there are only " << static_cast<int16_t>(bytes_left_to_read) << " bytes left to read";
             _message = oss.str();
         }
-        virtual const char* what() const override { return _message.c_str(); }
+        virtual const char* what() const noexcept override { return _message.c_str(); }
     private:
         std::string _message{};
     };
@@ -78,9 +78,9 @@ namespace TS
 
     // Packet parser
 
-    struct PacketParserException : public std::exception
+    struct PacketParserException : public std::runtime_error
     {
-        explicit PacketParserException(const char* message) : std::exception{ message } {}
+        explicit PacketParserException(const char* message) : std::runtime_error{ message } {}
     };
     struct InvalidPrivateBit : public PacketParserException
     {
@@ -123,26 +123,26 @@ namespace TS
 
     // Packet processor
 
-    struct InvalidCRC32 : public std::exception
+    struct InvalidCRC32 : public std::runtime_error
     {
-        InvalidCRC32() : std::exception{ "invalid CRC32" } {};
+        InvalidCRC32() : std::runtime_error{ "invalid CRC32" } {};
     };
 
 
 
     // PSI tables
 
-    struct Duplicated_PES_PID : public std::exception
+    struct Duplicated_PES_PID : public std::runtime_error
     {
-        Duplicated_PES_PID() : std::exception{ "duplicated PES PID" } {};
+        Duplicated_PES_PID() : std::runtime_error{ "duplicated PES PID" } {};
     };
-    struct Duplicated_PMT_PID : public std::exception
+    struct Duplicated_PMT_PID : public std::runtime_error
     {
-        Duplicated_PMT_PID() : std::exception{ "duplicated PMT PID" } {};
+        Duplicated_PMT_PID() : std::runtime_error{ "duplicated PMT PID" } {};
     };
-    struct Unknown_PMT_Program_Number : public std::exception
+    struct Unknown_PMT_Program_Number : public std::runtime_error
     {
-        Unknown_PMT_Program_Number() : std::exception{ "unknown PMT program number" } {};
+        Unknown_PMT_Program_Number() : std::runtime_error{ "unknown PMT program number" } {};
     };
 
 
@@ -153,7 +153,7 @@ namespace TS
     {
     public:
         explicit Unimplemented(const char* message) { _message += message; }
-        virtual const char* what() const override { return _message.c_str(); }
+        virtual const char* what() const noexcept override { return _message.c_str(); }
     private:
         std::string _message{ "unimplemented: " };
     };

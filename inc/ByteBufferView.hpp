@@ -1,6 +1,7 @@
 #ifndef __TS_BYTE_BUFFER_VIEW_HPP__
 #define __TS_BYTE_BUFFER_VIEW_HPP__
 
+#include <cstdint>
 #include <span>
 
 namespace TS

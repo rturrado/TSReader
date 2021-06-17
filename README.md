@@ -57,21 +57,43 @@ The code should use:
 - [X] Revisit the PacketBuffer implementation: performance.
   - [X] Minimize the copy of vectors of bytes.
   - [X] Reimplement read operation as a get view returning a span.
+- [X] CMake: add a CMakeLists.txt to compile the program in Windows and Linux.
 
 ## TODO
 
-- [ ] Create a Makefile.
 - [ ] Test with other TS files than elephants.ts.
 - [ ] New branch: reimplement using modules.<br/>
     This would be especially useful for Packet.h, since it is linked from many compilation units.
 - [ ] New branch: reimplement the FileReader as a pipeline of stages (reading, parsing, processing, printing stats...)
 - [ ] Add tests?
 
-## Usage
+## Requirements
+
+- CMake 3.20.4.
+- Boost libraries 1.75.0.
+  - Boost program_options static multithreaded library (libboost_program_options-vcXXX-mt-[gd-][x32|x64]-1_75.lib)
+
+## Compilation
 
 ### Windows
 
-`ts_reader.exe <TS FILE PATH> [-e|--extract <STREAM TYPE LIST>] [-s|--stats]`, where:<br/>
+#### Visual Studio 2019
+
+- Go to the project folder, open the `ts_reader.sln` with Visual Studio 2019, and build the solution.
+
+#### CMake
+
+- Open `CMakeLists.txt` and edit `BOOST_ROOT` and `BOOST_LIBRARY_DIR` variables to point to your Boost root and Boost library folders, respectively.
+- Open a shell as administrator, go to the project folder, and execute: `cmake -S . -B build`
+- Open the `build\ts_reader.sln` with Visual Studio 2019, and build the solution.
+
+### Linux
+
+- Go to the project folder, and execute: `cmake -S . -B build && cd build && make`
+
+## Usage
+
+`ts_reader <TS FILE PATH> [-e|--extract <STREAM TYPE LIST>] [-s|--stats]`, where:<br/>
 - `<TS FILE PATH>` is the path to the TS file. It can be absolute or relative to the `ts_reader.exe` location, and
 - `<STREAM TYPE LIST>` is a comma separated list of stream types.<br/>
     It supports hexadecimal, decimal or octal notation (e.g. 0xf, 15 or 017 for audio).

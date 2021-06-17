@@ -81,7 +81,7 @@ namespace TS
             {
                 std::ostringstream oss{};
                 oss << err.what() << "\n\tindex=" << parser.get_packet_index() << ", " << parser.get_packet() << "\n";
-                throw std::exception(oss.str().c_str());
+                throw std::runtime_error(oss.str().c_str());
             }
         }
 
