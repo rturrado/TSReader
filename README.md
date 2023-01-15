@@ -1,5 +1,4 @@
-# TSReader
-MPEG Transport Stream reader.
+# MPEG Transport Stream reader
 
 I've attended recently C\+\+Now 2021, which has been held online for the last two years.
 Some of the sponsors of this event used a channel in the Discord server to post different job offers and one of them, Unified Streaming, suggested to write the program below before applying for a position.
