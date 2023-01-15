@@ -49,26 +49,19 @@ The code should use:
 
 ## Compilation
 
-### Windows
+### Visual Studio (Windows)
 
-#### Visual Studio 2019
+- Open `ts_reader.sln` with Visual Studio.
+- Right click on the `ts_reader` project, and go to `Properties`.
+  - Update the Boost root path in `Configuration Properties > C/C++ > General > Additional Include Directories` to point to your Boost root path.
+  - Update the Boost library folder in `Configuration Properties > Linker > General > Additional Library Directories`.
+  - Save these changes and exit the project properties.
+- Right click on the `ts_reader` solution, and `Build Solution`.
 
-- Go to the project folder, open the `ts_reader.sln` with Visual Studio 2019, and build the solution.
-
-#### CMake
+### CMake (Windows/Linux)
 
 - Open `CMakeLists.txt` and edit `BOOST_ROOT` and `BOOST_LIBRARY_DIR` variables to point to your Boost root and Boost library folders, respectively.
-- Open a shell as administrator, go to the project folder, and execute:
-
-```
-C:\projects\ts_reader> cmake -S . -B build
-C:\projects\ts_reader> cmake --build build
-```
-
-
-### Linux
-
-Go to the project folder, and execute:
+- From a shell, go to the project folder, and execute:
 
 ```
 ~/projects/ts_reader> cmake -S . -B build
