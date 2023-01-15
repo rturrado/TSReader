@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
 
         std::filesystem::path ts_file_path{ "my_bitset.dat" };
         std::ofstream ofs(ts_file_path, std::ios::out | std::ios::binary);
-        ofs.write(reinterpret_cast<char*>(&v[0]), v.size() * sizeof(boost::dynamic_bitset<>::block_type));  // write vector to ifstream
+        ofs.write(reinterpret_cast<char*>(&v[0]), v.size() * sizeof(boost::dynamic_bitset<>::block_type));  // write vector to ofstream
 
         size_t file_size = static_cast<size_t>(std::filesystem::file_size(ts_file_path));
 

@@ -41,32 +41,6 @@ The code should use:
 - `Packet`, `Header`, `AdaptationField`, `AdaptationExtension` and so on are structs.
 - Field masks and byte chunks are `boost::dynamic_bitset`s. This way we can easily perform binary operations.
 
-## DONE
-
-- [X] Read elephants.ts and print out a summary of the TS packet PIDs (PID hex code, count, stream type, and stream description).
-- [X] Parse adaptation field, adaptation extension, and payload data.<br/>
-    Parsing of PSI (Program Specific Information) lets us know the PIDs for audio and video packets.
-- [X] Write audio and video to output files.<br/>
-    This is done as a post packet processing stage, together with the gathering of stats.<br/>
-    These actions are optional, and requested by the user through command line parameters.
-- [X] Revisit the PacketParser implementation: code more clear and elegant.
-  - [X] Encapsulate basic repetitive operations (e.g. read from buffer and create bitset)
-    - [ ] Implement the special case where the type is uint8_t?
-  - [X] Simplify complex functions.
-  - [ ] Read a whole section (a struct) with a single variadic templated function?
-- [X] Revisit the PacketBuffer implementation: performance.
-  - [X] Minimize the copy of vectors of bytes.
-  - [X] Reimplement read operation as a get view returning a span.
-- [X] CMake: add a CMakeLists.txt to compile the program in Windows and Linux.
-
-## TODO
-
-- [ ] Test with other TS files than elephants.ts.
-- [ ] New branch: reimplement using modules.<br/>
-    This would be especially useful for Packet.h, since it is linked from many compilation units.
-- [ ] New branch: reimplement the FileReader as a pipeline of stages (reading, parsing, processing, printing stats...)
-- [ ] Add tests?
-
 ## Requirements
 
 - CMake 3.20.4.
@@ -84,12 +58,22 @@ The code should use:
 #### CMake
 
 - Open `CMakeLists.txt` and edit `BOOST_ROOT` and `BOOST_LIBRARY_DIR` variables to point to your Boost root and Boost library folders, respectively.
-- Open a shell as administrator, go to the project folder, and execute: `cmake -S . -B build`
-- Open the `build\ts_reader.sln` with Visual Studio 2019, and build the solution.
+- Open a shell as administrator, go to the project folder, and execute:
+
+```
+C:\projects\ts_reader> cmake -S . -B build
+C:\projects\ts_reader> cmake --build build
+```
+
 
 ### Linux
 
-- Go to the project folder, and execute: `cmake -S . -B build && cd build && make`
+Go to the project folder, and execute:
+
+```
+~/projects/ts_reader> cmake -S . -B build
+~/projects/ts_reader> cmake --build build
+```
 
 ## Usage
 
@@ -97,3 +81,10 @@ The code should use:
 - `<TS FILE PATH>` is the path to the TS file. It can be absolute or relative to the `ts_reader.exe` location, and
 - `<STREAM TYPE LIST>` is a comma separated list of stream types.<br/>
     It supports hexadecimal, decimal or octal notation (e.g. 0xf, 15 or 017 for audio).
+
+As an example, you can try with the provided sample:
+
+```
+~/projects/ts_reader/build> ./ts_reader ../samples/elephants.ts -e 0xf,0x1b
+~/projects/ts_reader/build> ./ts_reader ../samples/elephants.ts --stats
+```
